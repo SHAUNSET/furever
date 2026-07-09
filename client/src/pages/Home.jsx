@@ -8,11 +8,7 @@ function Home() {
 
   return (
     <div>
-      <div>Home</div>
-
-      <div className="p-8">
-        <h1>Welcome {userData?.name}</h1>
-      </div>
+       
     </div>
   );
 }
