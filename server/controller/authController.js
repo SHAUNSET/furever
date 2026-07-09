@@ -239,6 +239,9 @@ export const googleLogin = async (req, res) => {
         // Generate JWT
         const token = generateToken(user._id);
 
+        console.log("Google User ID:", user._id);
+        console.log("Generated Token:", token);
+
         res.cookie("token", token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",

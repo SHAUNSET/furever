@@ -7,12 +7,15 @@ import { signInWithPopup } from "firebase/auth";
 import googleLogo from "../assets/google.png";
 import { authDataContext } from "../context/Authcontext.jsx";
 import { auth, provider } from "../utils/Firebase.js";
+import { userDataContext } from "../context/UserContext.jsx";
 
 const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
 export default function Login() {
   const { serverUrl } = useContext(authDataContext);
   const navigate = useNavigate();
+
+  const { getCurrentUser } = useContext(userDataContext);
 
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
@@ -50,9 +53,14 @@ export default function Login() {
         { withCredentials: true }
       );
       console.log(res.data);
-      setStatus("success");
-      // Give the success state a moment to show before navigating away
-      setTimeout(() => navigate("/"), 1200);
+
+await getCurrentUser();
+
+setStatus("success");
+
+setTimeout(() => {
+  navigate("/");
+}, 1200);
     } catch (error) {
       console.error("Error logging in user:", error);
       setServerError(
@@ -78,11 +86,15 @@ const handleGoogleLogin = async () => {
       { withCredentials: true }
     );
 
-    console.log(res.data);
+console.log(res.data);
 
-    setStatus("success");
+await getCurrentUser();
 
-    navigate("/");
+setStatus("success");
+
+setTimeout(() => {
+  navigate("/");
+}, 800);
 
   } catch (error) {
     setStatus("idle");

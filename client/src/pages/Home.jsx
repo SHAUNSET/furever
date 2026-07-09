@@ -1,11 +1,20 @@
-import React from "react";
+import { useContext } from "react";
+import { userDataContext } from "../context/UserContext";
 
 function Home() {
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-            <h1>Welcome to the Home Page</h1>
-        </div>
-    );
+  const { userData } = useContext(userDataContext);
+
+  console.log(userData);
+
+  return (
+    <div>
+      <div>Home</div>
+
+      <div className="p-8">
+        <h1>Welcome {userData?.name}</h1>
+      </div>
+    </div>
+  );
 }
 
 export default Home;
