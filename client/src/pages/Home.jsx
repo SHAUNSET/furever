@@ -1,15 +1,12 @@
-import { useContext } from "react";
-import { userDataContext } from "../context/UserContext";
+import Nav from "../components/Nav";
+import Hero from "../components/Hero";
 
 function Home() {
-  const { userData } = useContext(userDataContext);
-
-  console.log(userData);
-
   return (
-    <div>
-       
-    </div>
+    <>
+      <Nav />
+      <Hero />
+    </>
   );
 }
 

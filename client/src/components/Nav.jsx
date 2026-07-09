@@ -66,58 +66,62 @@ export default function Nav({ cartCount = 2 }) {
     setProfileOpen(false);
   };
 
-const handleLogout = async () => {
-  try {
-    await axios.post(
-      `${serverUrl}/api/auth/logout`,
-      {},
-      {
-        withCredentials: true,
-      }
-    );
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        `${serverUrl}/api/auth/logout`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
 
-    // Clear frontend user state
-    setUserData(null);
+      // Clear frontend user state
+      setUserData(null);
 
-    // Close dropdown
-    setProfileOpen(false);
+      // Close dropdown
+      setProfileOpen(false);
 
-    // Redirect to homepage
-    navigate("/");
-  } catch (err) {
-    console.error("Logout failed:", err);
-  }
-};
+      // Redirect to homepage
+      navigate("/");
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  };
 
   return (
     <div
-      className="w-full bg-white border-b border-[#EFEFF6] sticky top-0 z-50"
+      className="w-full bg-[#FFFBF7] border-b border-[#F2E6DC] sticky top-0 z-50"
       style={{ fontFamily: "'Inter', sans-serif" }}
     >
-      <div className="max-w-7xl mx-auto px-5 sm:px-8">
-        <div className="flex items-center justify-between h-20 sm:h-24">
-          {/* Logo */}
-          <a href="/" className="inline-flex items-center gap-2.5 group shrink-0">
+      {/* Full-bleed on desktop: no max-w cap, just responsive padding */}
+      <div className="w-full px-4 sm:px-6 lg:px-10 xl:px-16">
+        <div className="flex items-center justify-between h-16 sm:h-20 lg:h-24 gap-2">
+          {/* Logo — shrink-0 + min-w-0 handling keeps it from colliding with icons */}
+          <a
+            href="/"
+            className="inline-flex items-center gap-1.5 sm:gap-2.5 group shrink-0 min-w-0"
+          >
             <img
               src="/paws.png"
               alt="FurEver"
-              className="w-10 h-10 sm:w-12 sm:h-12 object-contain group-hover:scale-105 transition-transform"
+              className="w-8 h-8 sm:w-11 sm:h-11 lg:w-14 lg:h-14 xl:w-16 xl:h-16 object-contain group-hover:scale-105 transition-transform shrink-0"
             />
             <span
-              className="text-[#14172E] text-2xl sm:text-3xl"
+              className="text-[#181D27] text-xl sm:text-2xl lg:text-3xl xl:text-4xl whitespace-nowrap tracking-tight"
               style={{ fontFamily: "'Baloo 2', sans-serif", fontWeight: 700 }}
             >
-              FurEver
+              Fur<span className="text-[#FF5C35]">Ever</span>
             </span>
           </a>
 
           {/* Center links — desktop only */}
-          <div className="hidden md:flex items-center gap-10">
+          <div className="hidden lg:flex items-center gap-10 xl:gap-14">
             {NAV_LINKS.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
-                className="relative text-[#14172E] text-lg font-medium hover:text-[#3B4CE0] transition-colors after:absolute after:left-0 after:-bottom-1.5 after:h-[2px] after:w-0 after:bg-[#3B4CE0] after:transition-all after:duration-300 hover:after:w-full"
+                className="relative text-[#181D27] text-lg xl:text-xl font-semibold hover:text-[#FF5C35] transition-colors after:absolute after:left-0 after:-bottom-1.5 after:h-[2px] after:w-0 after:bg-[#FF5C35] after:transition-all after:duration-300 hover:after:w-full"
               >
                 {link.label}
               </a>
@@ -125,7 +129,7 @@ const handleLogout = async () => {
           </div>
 
           {/* Right icons */}
-          <div className="flex items-center gap-3 sm:gap-5">
+          <div className="flex items-center gap-1 sm:gap-3 lg:gap-4 shrink-0">
             {/* Search */}
             <div className="hidden sm:flex items-center">
               <AnimatePresence initial={false}>
@@ -143,7 +147,7 @@ const handleLogout = async () => {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search products..."
-                      className="w-full px-4 py-2.5 rounded-full border border-[#E7E7F3] bg-[#FAF7F1] text-base text-[#14172E] placeholder:text-[#B0B3CC] outline-none focus:border-[#3B4CE0] focus:ring-2 focus:ring-[#3B4CE0]/15 transition-all"
+                      className="w-full px-4 py-2.5 rounded-full border border-[#F2E6DC] bg-[#FFF8F1] text-base text-[#181D27] placeholder:text-[#B7AFA3] outline-none focus:border-[#FF5C35] focus:ring-2 focus:ring-[#FF5C35]/15 transition-all"
                     />
                   </motion.div>
                 )}
@@ -151,21 +155,21 @@ const handleLogout = async () => {
               <button
                 onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
                 aria-label={searchOpen ? "Close search" : "Open search"}
-                className="w-11 h-11 flex items-center justify-center rounded-full text-[#14172E] hover:bg-[#F2F1FB] hover:text-[#3B4CE0] transition-colors"
+                className="w-10 h-10 lg:w-11 lg:h-11 flex items-center justify-center rounded-full text-[#181D27] hover:bg-[#FFF1EA] hover:text-[#FF5C35] transition-colors"
               >
                 {searchOpen ? <X size={22} /> : <Search size={22} />}
               </button>
             </div>
 
             {/* Profile — guest or logged-in, with dropdown */}
-            <div className="relative" ref={profileRef}>
+            <div className="relative shrink-0" ref={profileRef}>
               {userData ? (
                 <button
                   onClick={() => setProfileOpen((o) => !o)}
                   aria-label="Account menu"
                   aria-haspopup="true"
                   aria-expanded={profileOpen}
-                  className="w-11 h-11 rounded-full bg-[#3B4CE0] text-white text-lg font-semibold flex items-center justify-center hover:opacity-90 transition-opacity shrink-0"
+                  className="w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-full bg-[#FF5C35] text-white text-base sm:text-lg font-semibold flex items-center justify-center hover:opacity-90 transition-opacity shrink-0"
                   style={{ fontFamily: "'Baloo 2', sans-serif" }}
                 >
                   {userData?.name?.[0]?.toUpperCase()}
@@ -176,95 +180,95 @@ const handleLogout = async () => {
                   aria-label="Account menu"
                   aria-haspopup="true"
                   aria-expanded={profileOpen}
-                  className="w-11 h-11 rounded-full bg-[#F2F1F5] text-[#9DA1C4] flex items-center justify-center hover:bg-[#E7E7F3] transition-colors shrink-0"
+                  className="w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-full bg-[#FFF1EA] text-[#C79A82] flex items-center justify-center hover:bg-[#FFE4D6] transition-colors shrink-0"
                 >
-                  <User size={22} />
+                  <User size={20} />
                 </button>
               )}
 
- <AnimatePresence>
-  {profileOpen && (
-    <motion.div
-      initial={{ opacity: 0, y: -8, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -8, scale: 0.97 }}
-      transition={{ duration: 0.18, ease: "easeOut" }}
-      className="absolute right-0 mt-3 w-52 bg-white rounded-2xl border border-[#EFEFF6] shadow-[0_10px_40px_-12px_rgba(20,23,46,0.18)] overflow-hidden z-50"
-    >
-      {userData ? (
-        <>
-          {/* User Info */}
-          <div className="px-4 py-4 border-b border-[#EFEFF6]">
-            <p className="text-[#14172E] font-semibold text-base">
-              {userData.name}
-            </p>
+              <AnimatePresence>
+                {profileOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                    transition={{ duration: 0.18, ease: "easeOut" }}
+                    className="absolute right-0 mt-3 w-56 bg-white rounded-2xl border border-[#F2E6DC] shadow-[0_10px_40px_-12px_rgba(24,29,39,0.18)] overflow-hidden z-50"
+                  >
+                    {userData ? (
+                      <>
+                        {/* User Info */}
+                        <div className="px-4 py-4 border-b border-[#F2E6DC]">
+                          <p className="text-[#181D27] font-semibold text-base">
+                            {userData.name}
+                          </p>
 
-            <p className="text-[#8A8FB0] text-sm truncate">
-              {userData.email}
-            </p>
-          </div>
+                          <p className="text-[#8A8378] text-sm truncate">
+                            {userData.email}
+                          </p>
+                        </div>
 
-          {/* Logged In Menu */}
-          <div className="py-2">
-            <button
-              onClick={() => handleNavigate("/orders")}
-              className="w-full flex items-center gap-3 px-4 py-3 text-[#14172E] text-base font-medium hover:bg-[#F2F1FB] hover:text-[#3B4CE0] transition-colors"
-            >
-              <Package size={18} />
-              Orders
-            </button>
+                        {/* Logged In Menu */}
+                        <div className="py-2">
+                          <button
+                            onClick={() => handleNavigate("/orders")}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-[#181D27] text-base font-medium hover:bg-[#FFF1EA] hover:text-[#FF5C35] transition-colors"
+                          >
+                            <Package size={18} />
+                            Orders
+                          </button>
 
-            <button
-              onClick={() => handleNavigate("/about")}
-              className="w-full flex items-center gap-3 px-4 py-3 text-[#14172E] text-base font-medium hover:bg-[#F2F1FB] hover:text-[#3B4CE0] transition-colors"
-            >
-              <Info size={18} />
-              About
-            </button>
+                          <button
+                            onClick={() => handleNavigate("/about")}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-[#181D27] text-base font-medium hover:bg-[#FFF1EA] hover:text-[#FF5C35] transition-colors"
+                          >
+                            <Info size={18} />
+                            About
+                          </button>
 
-            <div className="h-px bg-[#EFEFF6] my-1" />
+                          <div className="h-px bg-[#F2E6DC] my-1" />
 
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-4 py-3 text-[#FF7A5C] text-base font-medium hover:bg-[#FFF3F0] transition-colors"
-            >
-              <LogOut size={18} />
-              Logout
-            </button>
-          </div>
-        </>
-      ) : (
-        <div className="py-2">
-          <button
-            onClick={() => handleNavigate("/login")}
-            className="w-full flex items-center gap-3 px-4 py-3 text-[#14172E] text-base font-medium hover:bg-[#F2F1FB] hover:text-[#3B4CE0] transition-colors"
-          >
-            <LogIn size={18} />
-            Login
-          </button>
+                          <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-[#FF7A5C] text-base font-medium hover:bg-[#FFF3F0] transition-colors"
+                          >
+                            <LogOut size={18} />
+                            Logout
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="py-2">
+                        <button
+                          onClick={() => handleNavigate("/login")}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-[#181D27] text-base font-medium hover:bg-[#FFF1EA] hover:text-[#FF5C35] transition-colors"
+                        >
+                          <LogIn size={18} />
+                          Login
+                        </button>
 
-          <button
-            onClick={() => handleNavigate("/signup")}
-            className="w-full flex items-center gap-3 px-4 py-3 text-[#14172E] text-base font-medium hover:bg-[#F2F1FB] hover:text-[#3B4CE0] transition-colors"
-          >
-            <UserPlus size={18} />
-            Sign Up
-          </button>
-        </div>
-      )}
-    </motion.div>
-  )}
-</AnimatePresence>
+                        <button
+                          onClick={() => handleNavigate("/signup")}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-[#181D27] text-base font-medium hover:bg-[#FFF1EA] hover:text-[#FF5C35] transition-colors"
+                        >
+                          <UserPlus size={18} />
+                          Sign Up
+                        </button>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Cart */}
             <button
               aria-label="Cart"
-              className="relative w-11 h-11 flex items-center justify-center rounded-full text-[#14172E] hover:bg-[#F2F1FB] hover:text-[#3B4CE0] transition-colors"
+              className="relative w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 flex items-center justify-center rounded-full text-[#181D27] hover:bg-[#FFF1EA] hover:text-[#FF5C35] transition-colors shrink-0"
             >
-              <ShoppingCart size={22} />
+              <ShoppingCart size={20} className="sm:w-[22px] sm:h-[22px]" />
               {cartCount > 0 && (
-                <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF7A5C] text-white text-[11px] font-semibold flex items-center justify-center">
+                <span className="absolute top-0 right-0 min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF5C35] text-white text-[11px] font-semibold flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
@@ -274,16 +278,16 @@ const handleLogout = async () => {
             <button
               onClick={() => setSearchOpen((s) => !s)}
               aria-label="Open search"
-              className="sm:hidden w-11 h-11 flex items-center justify-center rounded-full text-[#14172E] hover:bg-[#F2F1FB] hover:text-[#3B4CE0] transition-colors"
+              className="sm:hidden w-9 h-9 flex items-center justify-center rounded-full text-[#181D27] hover:bg-[#FFF1EA] hover:text-[#FF5C35] transition-colors shrink-0"
             >
-              <Search size={22} />
+              <Search size={20} />
             </button>
 
-            {/* Hamburger — mobile only */}
+            {/* Hamburger — mobile/tablet only (shown below lg since links hide below lg) */}
             <button
               onClick={() => setMobileMenuOpen((o) => !o)}
               aria-label="Menu"
-              className="md:hidden w-11 h-11 flex items-center justify-center rounded-full text-[#14172E] hover:bg-[#F2F1FB] hover:text-[#3B4CE0] transition-colors"
+              className="lg:hidden w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-full text-[#181D27] hover:bg-[#FFF1EA] hover:text-[#FF5C35] transition-colors shrink-0"
             >
               <AnimatePresence mode="wait" initial={false}>
                 {mobileMenuOpen ? (
@@ -294,7 +298,7 @@ const handleLogout = async () => {
                     exit={{ rotate: 90, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <X size={24} />
+                    <X size={22} />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -304,7 +308,7 @@ const handleLogout = async () => {
                     exit={{ rotate: -90, opacity: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Menu size={24} />
+                    <Menu size={22} />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -329,14 +333,14 @@ const handleLogout = async () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search products..."
-                  className="w-full px-4 py-3 rounded-full border border-[#E7E7F3] bg-[#FAF7F1] text-base text-[#14172E] placeholder:text-[#B0B3CC] outline-none focus:border-[#3B4CE0] focus:ring-2 focus:ring-[#3B4CE0]/15 transition-all"
+                  className="w-full px-4 py-3 rounded-full border border-[#F2E6DC] bg-[#FFF8F1] text-base text-[#181D27] placeholder:text-[#B7AFA3] outline-none focus:border-[#FF5C35] focus:ring-2 focus:ring-[#FF5C35]/15 transition-all"
                 />
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Mobile nav links dropdown */}
+        {/* Mobile/tablet nav links dropdown — matches hamburger breakpoint (lg) */}
         <AnimatePresence initial={false}>
           {mobileMenuOpen && (
             <motion.div
@@ -344,7 +348,7 @@ const handleLogout = async () => {
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="md:hidden overflow-hidden border-t border-[#EFEFF6]"
+              className="lg:hidden overflow-hidden border-t border-[#F2E6DC]"
             >
               <div className="py-4 flex flex-col gap-1">
                 {NAV_LINKS.map((link) => (
@@ -352,7 +356,7 @@ const handleLogout = async () => {
                     key={link.label}
                     href={link.href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="text-[#14172E] text-lg font-medium px-2 py-3 rounded-lg hover:bg-[#F2F1FB] hover:text-[#3B4CE0] transition-colors"
+                    className="text-[#181D27] text-lg font-semibold px-2 py-3 rounded-lg hover:bg-[#FFF1EA] hover:text-[#FF5C35] transition-colors"
                   >
                     {link.label}
                   </a>
