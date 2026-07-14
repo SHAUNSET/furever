@@ -3,6 +3,7 @@ import validator from "validator";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { generateToken } from "../config/token.js";
+import { generateAdminToken } from "../config/token.js";
 
 // ======================================================
 // Register User
@@ -269,4 +270,54 @@ export const googleLogin = async (req, res) => {
             message: "Internal Server Error"
         });
     }
+};
+
+
+export const adminLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Check if fields are provided
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and Password are required",
+      });
+    }
+
+    // Validate admin credentials
+    if (
+      email !== process.env.ADMIN_EMAIL ||
+      password !== process.env.ADMIN_PASSWORD
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid Admin Credentials",
+      });
+    }
+
+    // Generate Admin JWT
+    const token = generateAdminToken();
+
+    // Store token in cookie
+    res.cookie("adminToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin Login Successful",
+      token,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
 };

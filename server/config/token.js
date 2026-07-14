@@ -21,3 +21,21 @@ export const generateToken = (userId) => {
     throw new Error("Token generation failed");
   }
 };
+
+
+export const generateAdminToken = () => {
+  try {
+    return jwt.sign(
+      {
+        role: "admin",
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "7d",
+      }
+    );
+  } catch (error) {
+    console.error("Admin Token Error:", error);
+    throw new Error("Admin token generation failed");
+  }
+};
