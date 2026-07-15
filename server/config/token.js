@@ -27,6 +27,7 @@ export const generateAdminToken = () => {
   try {
     return jwt.sign(
       {
+        email: process.env.ADMIN_EMAIL,
         role: "admin",
       },
       process.env.JWT_SECRET,

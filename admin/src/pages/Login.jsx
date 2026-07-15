@@ -1,13 +1,26 @@
-import { useState, useContext } from "react";
+import { useState, useContext, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  ShieldCheck,
+} from "lucide-react";
 import axios from "axios";
 import { authDataContext } from "../context/AuthContext";
+import { adminDataContext } from "../context/AdminContext";
 
 const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
 export default function AdminLogin() {
   const { serverUrl } = useContext(authDataContext);
+  const { getAdmin, adminData } = useContext(adminDataContext);
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [form, setForm] = useState({
     email: "",
@@ -18,6 +31,12 @@ export default function AdminLogin() {
   const [touched, setTouched] = useState({});
   const [status, setStatus] = useState("idle");
   const [serverError, setServerError] = useState("");
+
+  useEffect(() => {
+    if (adminData && location.pathname === "/login") {
+      navigate("/", { replace: true });
+    }
+  }, [adminData, location.pathname, navigate]);
 
   const valid = {
     email: isValidEmail(form.email),
@@ -60,10 +79,14 @@ export default function AdminLogin() {
         }
       );
 
-      console.log("Admin Token:");
-      console.log(res.data.token);
+      console.log("Admin Token:", res.data.token);
+
+      await getAdmin();
 
       setStatus("success");
+
+      navigate("/", { replace: true });
+
     } catch (error) {
       console.error(error);
 
@@ -74,6 +97,8 @@ export default function AdminLogin() {
       );
     }
   };
+
+
 
   return (
     <div

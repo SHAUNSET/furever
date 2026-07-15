@@ -27,3 +27,22 @@ export const getCurrentUser = async (req, res) => {
     });
   }
 };
+
+export const getAdmin = async (req, res) => {
+  try {
+    return res.status(200).json({
+      success: true,
+      admin: {
+        email: process.env.ADMIN_EMAIL,
+        role: "admin",
+      },
+    });
+  } catch (error) {
+    console.log("getAdmin error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+    });
+  }
+};
