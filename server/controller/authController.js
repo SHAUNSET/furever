@@ -164,29 +164,33 @@ export const login = async (req, res) => {
 // Logout
 // ======================================================
 export const logout = (req, res) => {
+  try {
+    // User cookie
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
 
-    try {
+    // Admin cookie
+    res.clearCookie("adminToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
 
-        res.clearCookie("token", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "strict"
-        });
+    return res.status(200).json({
+      success: true,
+      message: "Logout Successful",
+    });
+  } catch (error) {
+    console.log(error);
 
-        return res.status(200).json({
-            success: true,
-            message: "Logout Successful"
-        });
-
-    } catch (error) {
-
-        console.log(error);
-
-        return res.status(500).json({
-            success: false,
-            message: "Internal Server Error"
-        });
-    }
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
 };
 
 // ======================================================
