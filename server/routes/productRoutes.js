@@ -1,15 +1,22 @@
 import express from "express";
 import upload from "../middleware/multer.js";
 import adminAuth from "../middleware/adminAuth.js";
+import userAuth from "../middleware/userAuth.js";
 
 import {
   addProduct,
   listProduct,
   removeProduct,
   updateProduct,
+  addReview,
 } from "../controller/productController.js";
 
 const productRoutes = express.Router();
+
+
+// ===============================
+// ADMIN: ADD PRODUCT
+// ===============================
 
 productRoutes.post(
   "/addproduct",
@@ -23,9 +30,42 @@ productRoutes.post(
   addProduct
 );
 
-productRoutes.get("/listproduct", listProduct);
 
-productRoutes.delete("/removeproduct/:id", adminAuth, removeProduct);
+// ===============================
+// PUBLIC: LIST ALL PRODUCTS
+// ===============================
+
+productRoutes.get(
+  "/listproduct",
+  listProduct
+);
+
+
+// ===============================
+// USER: ADD REVIEW AND RATING
+// ===============================
+
+productRoutes.post(
+  "/:id/review",
+  userAuth,
+  addReview
+);
+
+
+// ===============================
+// ADMIN: REMOVE PRODUCT
+// ===============================
+
+productRoutes.delete(
+  "/removeproduct/:id",
+  adminAuth,
+  removeProduct
+);
+
+
+// ===============================
+// ADMIN: UPDATE PRODUCT
+// ===============================
 
 productRoutes.put(
   "/updateproduct/:id",
@@ -38,5 +78,6 @@ productRoutes.put(
   ]),
   updateProduct
 );
+
 
 export default productRoutes;

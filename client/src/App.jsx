@@ -10,7 +10,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Registration from "./pages/Registration";
 import Collections from "./pages/Collections";
-import Product from "./pages/Product";
+import ProductDetail from "./pages/ProductDetail";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 
@@ -22,10 +22,14 @@ function App() {
 
   return (
     <Routes>
-      {/* Home */}
-      <Route path="/" element={<Home />} />
 
-      {/* Login */}
+      {/* HOME */}
+      <Route
+        path="/"
+        element={<Home />}
+      />
+
+      {/* LOGIN */}
       <Route
         path="/login"
         element={
@@ -40,7 +44,7 @@ function App() {
         }
       />
 
-      {/* Registration */}
+      {/* SIGN UP */}
       <Route
         path="/signup"
         element={
@@ -55,35 +59,41 @@ function App() {
         }
       />
 
-      {/* Collections */}
+      {/* COLLECTIONS */}
       <Route
         path="/collections"
         element={<Collections />}
       />
 
-      {/* Product Details */}
+      {/* PRODUCT DETAIL */}
       <Route
         path="/product/:id"
-        element={<Product />}
+        element={<ProductDetail />}
       />
 
-      {/* About */}
+      {/* ABOUT */}
       <Route
         path="/about"
         element={<About />}
       />
 
-      {/* Contact */}
+      {/* CONTACT */}
       <Route
         path="/contact"
         element={<Contact />}
       />
 
-      {/* Invalid Routes */}
+      {/* INVALID ROUTES */}
       <Route
         path="*"
-        element={<Navigate to="/" replace />}
+        element={
+          <Navigate
+            to="/"
+            replace
+          />
+        }
       />
+
     </Routes>
   );
 }

@@ -9,13 +9,18 @@ function Card({ product }) {
 
   const { currency } = useContext(shopDataContext);
 
+  const rating = product.rating || 0;
+  const reviewCount = product.reviewCount || 0;
+
   const handleAddToCart = (e) => {
     e.stopPropagation();
 
-    // TODO:
-    // addToCart(product._id);
-
+    // Cart logic will be connected later
     console.log("Added to Cart:", product.name);
+  };
+
+  const handleProductClick = () => {
+    navigate(`/product/${product._id}`);
   };
 
   return (
@@ -27,7 +32,7 @@ function Card({ product }) {
       transition={{
         duration: 0.35,
       }}
-      onClick={() => navigate(`/product/${product._id}`)}
+      onClick={handleProductClick}
       className="
         group
         w-full
@@ -42,12 +47,28 @@ function Card({ product }) {
         cursor-pointer
       "
     >
-      {/* Image */}
+      {/* PRODUCT IMAGE */}
 
       <div className="relative overflow-hidden bg-[#F8F5EF]">
 
         {product.bestseller && (
-          <div className="absolute left-5 top-5 z-20 bg-[#FF6A3D] text-white px-4 py-2 rounded-full text-xs font-semibold tracking-wide shadow-lg">
+          <div
+            className="
+              absolute
+              left-5
+              top-5
+              z-20
+              bg-[#FF6A3D]
+              text-white
+              px-4
+              py-2
+              rounded-full
+              text-xs
+              font-semibold
+              tracking-wide
+              shadow-lg
+            "
+          >
             Bestseller
           </div>
         )}
@@ -67,34 +88,52 @@ function Card({ product }) {
         />
       </div>
 
-      {/* Content */}
+      {/* PRODUCT CONTENT */}
 
       <div className="px-7 py-6">
 
-        {/* Product Name */}
+        {/* PRODUCT NAME */}
 
-        <h3 className="text-2xl font-bold text-[#14172E] text-center line-clamp-1">
+        <h3
+          className="
+            text-2xl
+            font-bold
+            text-[#14172E]
+            text-center
+            line-clamp-1
+          "
+        >
           {product.name}
         </h3>
 
-        {/* Rating */}
+        {/* RATING */}
 
         <div className="flex justify-center items-center gap-1 mt-4">
 
           {[1, 2, 3, 4, 5].map((star) => (
             <FaStar
               key={star}
-              className="text-yellow-400 text-sm"
+              className={
+                star <= Math.round(rating)
+                  ? "text-yellow-400 text-sm"
+                  : "text-gray-300 text-sm"
+              }
             />
           ))}
 
           <span className="ml-2 text-sm text-gray-500">
-            4.9
+            {rating > 0 ? rating.toFixed(1) : "No ratings"}
           </span>
+
+          {reviewCount > 0 && (
+            <span className="text-sm text-gray-400">
+              ({reviewCount})
+            </span>
+          )}
 
         </div>
 
-        {/* Price */}
+        {/* PRICE */}
 
         <div className="mt-6 text-center">
 
@@ -105,7 +144,7 @@ function Card({ product }) {
 
         </div>
 
-        {/* Add To Cart */}
+        {/* ADD TO CART */}
 
         <motion.button
           whileHover={{
