@@ -1,4 +1,4 @@
-import { useState, useContext, useRef, useEffect } from "react";
+import { useState, useContext, useRef, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { authDataContext } from "../context/Authcontext";
 import { userDataContext } from "../context/UserContext";
+import { shopDataContext } from "../context/ShopContext";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
@@ -29,19 +30,102 @@ export default function Nav({ cartCount = 2 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1);
 
   const navigate = useNavigate();
   const { serverUrl } = useContext(authDataContext);
-  const { userData, setUserData, getCurrentUser } = useContext(userDataContext);
+  const { userData, setUserData } = useContext(userDataContext);
+  const { products = [], setSearch } = useContext(shopDataContext) || {};
 
   const profileRef = useRef(null);
+  const searchInputRef = useRef(null);
 
+  // ─── Compute suggestions (no images) ───────────────────────────────
+  const suggestions = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query || !products.length) return [];
+
+    return products
+      .filter((p) => {
+        const name = (p.name || "").toLowerCase();
+        const category = (p.category || "").toLowerCase();
+        const subCategory = (p.subCategory || "").toLowerCase();
+        return (
+          name.includes(query) ||
+          category.includes(query) ||
+          subCategory.includes(query)
+        );
+      })
+      .slice(0, 8);
+  }, [searchQuery, products]);
+
+  // ─── Close search ─────────────────────────────────────────────────────
   const closeSearch = () => {
     setSearchOpen(false);
     setSearchQuery("");
+    setSelectedSuggestionIndex(-1);
   };
 
-  // Close profile dropdown on outside click
+  // ─── Submit search ──────────────────────────────────────────────────
+  const submitSearch = (term) => {
+    const trimmed = (term || searchQuery).trim();
+    if (!trimmed) return;
+    if (typeof setSearch === "function") {
+      setSearch(trimmed);
+    }
+    navigate("/collections");
+    setSearchOpen(false);
+    setMobileMenuOpen(false);
+    setSelectedSuggestionIndex(-1);
+  };
+
+  // ─── Keyboard handlers ──────────────────────────────────────────────
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Escape") {
+      closeSearch();
+      return;
+    }
+
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (selectedSuggestionIndex >= 0 && suggestions[selectedSuggestionIndex]) {
+        const product = suggestions[selectedSuggestionIndex];
+        setSearchQuery(product.name);
+        submitSearch(product.name);
+      } else {
+        submitSearch();
+      }
+      return;
+    }
+
+    if (suggestions.length) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setSelectedSuggestionIndex((prev) =>
+          prev < suggestions.length - 1 ? prev + 1 : prev
+        );
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setSelectedSuggestionIndex((prev) => (prev > 0 ? prev - 1 : -1));
+      }
+    }
+  };
+
+  // ─── Desktop search icon click ──────────────────────────────────────
+  const handleSearchIconClick = () => {
+    if (!searchOpen) {
+      setSearchOpen(true);
+      setTimeout(() => searchInputRef.current?.focus(), 50);
+      return;
+    }
+    if (searchQuery.trim()) {
+      submitSearch();
+    } else {
+      closeSearch();
+    }
+  };
+
+  // ─── Click outside profile ───────────────────────────────────────────
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
@@ -52,7 +136,7 @@ export default function Nav({ cartCount = 2 }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Close profile dropdown on Escape
+  // ─── Escape closes profile ──────────────────────────────────────────
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === "Escape") setProfileOpen(false);
@@ -61,6 +145,7 @@ export default function Nav({ cartCount = 2 }) {
     return () => document.removeEventListener("keydown", handleEscape);
   }, []);
 
+  // ─── Navigation helpers ─────────────────────────────────────────────
   const handleNavigate = (path) => {
     navigate(path);
     setProfileOpen(false);
@@ -71,33 +156,25 @@ export default function Nav({ cartCount = 2 }) {
       await axios.post(
         `${serverUrl}/api/auth/logout`,
         {},
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
-
-      // Clear frontend user state
       setUserData(null);
-
-      // Close dropdown
       setProfileOpen(false);
-
-      // Redirect to homepage
       navigate("/");
     } catch (err) {
       console.error("Logout failed:", err);
     }
   };
 
+  // ─── Render ──────────────────────────────────────────────────────────
   return (
     <div
       className="w-full bg-[#FFFBF7] border-b border-[#F2E6DC] sticky top-0 z-50"
       style={{ fontFamily: "'Inter', sans-serif" }}
     >
-      {/* Full-bleed on desktop: no max-w cap, just responsive padding */}
       <div className="w-full px-4 sm:px-6 lg:px-10 xl:px-16">
         <div className="flex items-center justify-between h-16 sm:h-20 lg:h-24 gap-2">
-          {/* Logo — shrink-0 + min-w-0 handling keeps it from colliding with icons */}
+          {/* Logo */}
           <a
             href="/"
             className="inline-flex items-center gap-1.5 sm:gap-2.5 group shrink-0 min-w-0"
@@ -115,7 +192,7 @@ export default function Nav({ cartCount = 2 }) {
             </span>
           </a>
 
-          {/* Center links — desktop only */}
+          {/* Desktop links */}
           <div className="hidden lg:flex items-center gap-10 xl:gap-14">
             {NAV_LINKS.map((link) => (
               <a
@@ -130,38 +207,84 @@ export default function Nav({ cartCount = 2 }) {
 
           {/* Right icons */}
           <div className="flex items-center gap-1 sm:gap-3 lg:gap-4 shrink-0">
-            {/* Search */}
-            <div className="hidden sm:flex items-center">
-              <AnimatePresence initial={false}>
-                {searchOpen && (
-                  <motion.div
-                    initial={{ width: 0, opacity: 0 }}
-                    animate={{ width: 240, opacity: 1 }}
-                    exit={{ width: 0, opacity: 0 }}
-                    transition={{ duration: 0.25, ease: "easeOut" }}
-                    className="overflow-hidden mr-1"
-                  >
-                    <input
-                      autoFocus
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search products..."
-                      className="w-full px-4 py-2.5 rounded-full border border-[#F2E6DC] bg-[#FFF8F1] text-base text-[#181D27] placeholder:text-[#B7AFA3] outline-none focus:border-[#FF5C35] focus:ring-2 focus:ring-[#FF5C35]/15 transition-all"
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              <button
-                onClick={() => (searchOpen ? closeSearch() : setSearchOpen(true))}
-                aria-label={searchOpen ? "Close search" : "Open search"}
-                className="w-10 h-10 lg:w-11 lg:h-11 flex items-center justify-center rounded-full text-[#181D27] hover:bg-[#FFF1EA] hover:text-[#FF5C35] transition-colors"
-              >
-                {searchOpen ? <X size={22} /> : <Search size={22} />}
-              </button>
+            {/* ===== Desktop Search ===== */}
+            <div className="hidden sm:flex items-center relative">
+              {/* Container with row-reverse so the button stays at the right edge */}
+              <div className="flex flex-row-reverse items-center relative">
+                {/* The animated input – expands leftward */}
+                <motion.div
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{
+                    width: searchOpen ? 280 : 0,
+                    opacity: searchOpen ? 1 : 0,
+                  }}
+                  exit={{ width: 0, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  className="overflow-hidden"
+                >
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setSelectedSuggestionIndex(-1);
+                    }}
+                    onKeyDown={handleSearchKeyDown}
+                    onFocus={() => setSearchOpen(true)}
+                    placeholder="Search products..."
+                    className="w-full px-4 py-2.5 rounded-full border border-[#F2E6DC] bg-[#FFF8F1] text-base text-[#181D27] placeholder:text-[#B7AFA3] outline-none focus:border-[#FF5C35] focus:ring-2 focus:ring-[#FF5C35]/15 transition-all"
+                  />
+                </motion.div>
+
+                {/* Search toggle button – always visible, rightmost */}
+                <button
+                  onClick={handleSearchIconClick}
+                  aria-label={searchOpen ? "Submit or close search" : "Open search"}
+                  className="w-10 h-10 lg:w-11 lg:h-11 flex items-center justify-center rounded-full text-[#181D27] hover:bg-[#FFF1EA] hover:text-[#FF5C35] transition-colors shrink-0"
+                >
+                  {searchOpen ? (
+                    searchQuery.trim() ? <Search size={22} /> : <X size={22} />
+                  ) : (
+                    <Search size={22} />
+                  )}
+                </button>
+
+                {/* Suggestions dropdown – positioned below the input, no clipping */}
+                <AnimatePresence>
+                  {searchOpen && suggestions.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl border border-[#E3D9CB] shadow-xl z-50 max-h-[300px] overflow-y-auto"
+                    >
+                      {suggestions.map((product, index) => (
+                        <div
+                          key={product._id}
+                          onClick={() => {
+                            setSearchQuery(product.name);
+                            submitSearch(product.name);
+                          }}
+                          onMouseEnter={() => setSelectedSuggestionIndex(index)}
+                          className={`px-4 py-3 hover:bg-[#FFF8F1] cursor-pointer flex items-center gap-3 border-b border-[#F2E6DC] last:border-none ${
+                            selectedSuggestionIndex === index ? "bg-[#FFF8F1]" : ""
+                          }`}
+                        >
+                          {/* No image – just text */}
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{product.name}</p>
+                            <p className="text-xs text-[#8A8578]">₹{product.price}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
-            {/* Profile — guest or logged-in, with dropdown */}
+            {/* Profile dropdown – unchanged */}
             <div className="relative shrink-0" ref={profileRef}>
               {userData ? (
                 <button
@@ -197,18 +320,14 @@ export default function Nav({ cartCount = 2 }) {
                   >
                     {userData ? (
                       <>
-                        {/* User Info */}
                         <div className="px-4 py-4 border-b border-[#F2E6DC]">
                           <p className="text-[#181D27] font-semibold text-base">
                             {userData.name}
                           </p>
-
                           <p className="text-[#8A8378] text-sm truncate">
                             {userData.email}
                           </p>
                         </div>
-
-                        {/* Logged In Menu */}
                         <div className="py-2">
                           <button
                             onClick={() => handleNavigate("/orders")}
@@ -217,7 +336,6 @@ export default function Nav({ cartCount = 2 }) {
                             <Package size={18} />
                             Orders
                           </button>
-
                           <button
                             onClick={() => handleNavigate("/about")}
                             className="w-full flex items-center gap-3 px-4 py-3 text-[#181D27] text-base font-medium hover:bg-[#FFF1EA] hover:text-[#FF5C35] transition-colors"
@@ -225,9 +343,7 @@ export default function Nav({ cartCount = 2 }) {
                             <Info size={18} />
                             About
                           </button>
-
                           <div className="h-px bg-[#F2E6DC] my-1" />
-
                           <button
                             onClick={handleLogout}
                             className="w-full flex items-center gap-3 px-4 py-3 text-[#FF7A5C] text-base font-medium hover:bg-[#FFF3F0] transition-colors"
@@ -246,7 +362,6 @@ export default function Nav({ cartCount = 2 }) {
                           <LogIn size={18} />
                           Login
                         </button>
-
                         <button
                           onClick={() => handleNavigate("/signup")}
                           className="w-full flex items-center gap-3 px-4 py-3 text-[#181D27] text-base font-medium hover:bg-[#FFF1EA] hover:text-[#FF5C35] transition-colors"
@@ -283,7 +398,7 @@ export default function Nav({ cartCount = 2 }) {
               <Search size={20} />
             </button>
 
-            {/* Hamburger — mobile/tablet only (shown below lg since links hide below lg) */}
+            {/* Hamburger */}
             <button
               onClick={() => setMobileMenuOpen((o) => !o)}
               aria-label="Menu"
@@ -316,7 +431,7 @@ export default function Nav({ cartCount = 2 }) {
           </div>
         </div>
 
-        {/* Mobile search bar — full width below header */}
+        {/* Mobile search bar – full width */}
         <AnimatePresence initial={false}>
           {searchOpen && (
             <motion.div
@@ -332,6 +447,7 @@ export default function Nav({ cartCount = 2 }) {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   placeholder="Search products..."
                   className="w-full px-4 py-3 rounded-full border border-[#F2E6DC] bg-[#FFF8F1] text-base text-[#181D27] placeholder:text-[#B7AFA3] outline-none focus:border-[#FF5C35] focus:ring-2 focus:ring-[#FF5C35]/15 transition-all"
                 />
@@ -340,7 +456,7 @@ export default function Nav({ cartCount = 2 }) {
           )}
         </AnimatePresence>
 
-        {/* Mobile/tablet nav links dropdown — matches hamburger breakpoint (lg) */}
+        {/* Mobile menu */}
         <AnimatePresence initial={false}>
           {mobileMenuOpen && (
             <motion.div
