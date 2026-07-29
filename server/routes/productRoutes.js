@@ -9,6 +9,7 @@ import {
   removeProduct,
   updateProduct,
   addReview,
+  getReviews,
 } from "../controller/productController.js";
 
 const productRoutes = express.Router();
@@ -49,6 +50,11 @@ productRoutes.post(
   "/:id/review",
   userAuth,
   addReview
+);
+
+productRoutes.get(
+  "/:id/reviews",
+  getReviews
 );
 
 

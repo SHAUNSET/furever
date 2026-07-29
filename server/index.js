@@ -8,39 +8,122 @@ import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
+import cartRoutes from "./routes/cartRoutes.js";
 
 dotenv.config();
 
-// Connect Database
+
+// ---------------- CONNECT DATABASE ----------------
+
 await connectDB();
 
+
+// ---------------- CREATE APP ----------------
+
 const app = express();
+
 const port = process.env.PORT || 8000;
 
-// Middlewares
+
+// ---------------- MIDDLEWARES ----------------
+
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+app.use(
+  express.urlencoded({
+    extended: true,
+  })
+);
+
 app.use(cookieParser());
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+    ],
+
     credentials: true,
   })
 );
 
-// Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes);
-app.use("/api/product", productRoutes);
-app.use("/api/feedback", feedbackRoutes);
 
-// Test Route
-app.get("/", (req, res) => {
-  res.send("FurEver Backend Running 🚀");
-});
+// ---------------- API ROUTES ----------------
 
-// Start Server
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+app.use(
+  "/api/auth",
+  authRoutes
+);
+
+app.use(
+  "/api/user",
+  userRoutes
+);
+
+app.use(
+  "/api/product",
+  productRoutes
+);
+
+app.use(
+  "/api/feedback",
+  feedbackRoutes
+);
+
+
+// ---------------- CART ROUTES ----------------
+
+console.log(
+  "✅ Mounting cart routes at /api/cart"
+);
+
+app.use(
+  "/api/cart",
+  cartRoutes
+);
+
+
+// ---------------- CART TEST ROUTE ----------------
+
+app.get(
+  "/api/cart-test",
+  (req, res) => {
+
+    res.status(200).json({
+      success: true,
+
+      message:
+        "Backend is running and cart testing route works",
+    });
+
+  }
+);
+
+
+// ---------------- HOME TEST ROUTE ----------------
+
+app.get(
+  "/",
+  (req, res) => {
+
+    res.send(
+      "FurEver Backend Running 🚀"
+    );
+
+  }
+);
+
+
+// ---------------- START SERVER ----------------
+
+app.listen(
+  port,
+  () => {
+
+    console.log(
+      `🚀 Server is running on port ${port}`
+    );
+
+  }
+);

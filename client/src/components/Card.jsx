@@ -7,7 +7,10 @@ import { shopDataContext } from "../context/ShopContext";
 function Card({ product }) {
   const navigate = useNavigate();
 
-  const { currency } = useContext(shopDataContext);
+  const {
+    currency,
+    addToCart,
+  } = useContext(shopDataContext);
 
   const rating = product.rating || 0;
   const reviewCount = product.reviewCount || 0;
@@ -15,8 +18,11 @@ function Card({ product }) {
   const handleAddToCart = (e) => {
     e.stopPropagation();
 
-    // Cart logic will be connected later
-    console.log("Added to Cart:", product.name);
+    addToCart(
+      product._id,
+      "",
+      1
+    );
   };
 
   const handleProductClick = () => {
@@ -122,7 +128,9 @@ function Card({ product }) {
           ))}
 
           <span className="ml-2 text-sm text-gray-500">
-            {rating > 0 ? rating.toFixed(1) : "No ratings"}
+            {rating > 0
+              ? rating.toFixed(1)
+              : "No ratings"}
           </span>
 
           {reviewCount > 0 && (

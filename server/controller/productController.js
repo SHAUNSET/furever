@@ -262,3 +262,36 @@ export const addReview = async (req, res) => {
     });
   }
 };
+
+export const getReviews = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await Product.findById(id);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      reviews: product.reviews || [],
+      rating: product.rating || 0,
+      reviewCount: product.reviewCount || 0,
+    });
+
+  } catch (error) {
+    console.log(
+      "Get Reviews Error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};

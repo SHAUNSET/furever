@@ -1,4 +1,5 @@
 import React, { useContext } from "react";
+
 import {
   Routes,
   Route,
@@ -13,29 +14,41 @@ import Collections from "./pages/Collections";
 import ProductDetail from "./pages/ProductDetail";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
+import Cart from "./pages/Cart";
 
-import { userDataContext } from "./context/UserContext";
+import {
+  userDataContext,
+} from "./context/UserContext";
 
 function App() {
-  const { userData } = useContext(userDataContext);
-  const location = useLocation();
+  const { userData } =
+    useContext(userDataContext);
+
+  const location =
+    useLocation();
 
   return (
     <Routes>
 
       {/* HOME */}
+
       <Route
         path="/"
         element={<Home />}
       />
 
+
       {/* LOGIN */}
+
       <Route
         path="/login"
         element={
           userData ? (
             <Navigate
-              to={location.state?.from || "/"}
+              to={
+                location.state?.from ||
+                "/"
+              }
               replace
             />
           ) : (
@@ -44,13 +57,18 @@ function App() {
         }
       />
 
+
       {/* SIGN UP */}
+
       <Route
         path="/signup"
         element={
           userData ? (
             <Navigate
-              to={location.state?.from || "/"}
+              to={
+                location.state?.from ||
+                "/"
+              }
               replace
             />
           ) : (
@@ -59,31 +77,67 @@ function App() {
         }
       />
 
+
       {/* COLLECTIONS */}
+
       <Route
         path="/collections"
-        element={<Collections />}
+        element={
+          <Collections />
+        }
       />
+
 
       {/* PRODUCT DETAIL */}
+
       <Route
         path="/product/:id"
-        element={<ProductDetail />}
+        element={
+          <ProductDetail />
+        }
       />
 
+
+      {/* CART */}
+
+      <Route
+        path="/cart"
+        element={
+          userData ? (
+            <Cart />
+          ) : (
+            <Navigate
+              to="/login"
+              state={{
+                from: "/cart",
+              }}
+              replace
+            />
+          )
+        }
+      />
+
+
       {/* ABOUT */}
+
       <Route
         path="/about"
         element={<About />}
       />
 
+
       {/* CONTACT */}
+
       <Route
         path="/contact"
-        element={<Contact />}
+        element={
+          <Contact />
+        }
       />
 
+
       {/* INVALID ROUTES */}
+
       <Route
         path="*"
         element={

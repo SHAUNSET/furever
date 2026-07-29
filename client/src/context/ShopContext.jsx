@@ -4,40 +4,68 @@ import React, {
   useEffect,
   useState,
 } from "react";
+
 import axios from "axios";
+
 import { authDataContext } from "./Authcontext.jsx";
+import { userDataContext } from "./UserContext.jsx";
 
 export const shopDataContext = createContext();
 
 function ShopContext({ children }) {
   const { serverUrl } = useContext(authDataContext);
 
+  const { userData } = useContext(userDataContext);
+
+  // ---------------- PRODUCTS ----------------
+
   const [products, setProducts] = useState([]);
+
   const [loading, setLoading] = useState(true);
 
-  const [cartItems, setCartItems] = useState(() => {
-    const savedCart = localStorage.getItem("furever-cart");
-    return savedCart ? JSON.parse(savedCart) : [];
-  });
+  // ---------------- CART ----------------
+
+  const [cartItems, setCartItems] =
+    useState({});
+
+  const [cartLoading, setCartLoading] =
+    useState(false);
+
+  // ---------------- STORE SETTINGS ----------------
 
   const currency = "₹";
+
   const deliveryFee = 50;
 
-  // ---------------- GET PRODUCTS ----------------
+  // ==================================================
+  // GET PRODUCTS
+  // ==================================================
 
   const getProducts = async () => {
+    if (!serverUrl) {
+      return;
+    }
+
     try {
       setLoading(true);
 
-      const result = await axios.get(
+      const response = await axios.get(
         `${serverUrl}/api/product/listproduct`
       );
 
-      if (result.data.success) {
-        setProducts(result.data.products);
+      if (response.data.success) {
+        setProducts(
+          response.data.products || []
+        );
       }
+
     } catch (error) {
-      console.log("Get Products Error:", error);
+      console.log(
+        "Get Products Error:",
+        error.response?.data ||
+          error.message
+      );
+
     } finally {
       setLoading(false);
     }
@@ -45,140 +73,386 @@ function ShopContext({ children }) {
 
   useEffect(() => {
     getProducts();
-  }, []);
+  }, [serverUrl]);
 
-  // ---------------- SAVE CART ----------------
+  // ==================================================
+  // GET CART FROM BACKEND
+  // ==================================================
 
-  useEffect(() => {
-    localStorage.setItem(
-      "furever-cart",
-      JSON.stringify(cartItems)
-    );
-  }, [cartItems]);
-
-  // ---------------- ADD TO CART ----------------
-
-  const addToCart = (productId, size, quantity = 1) => {
-  setCartItems((prev) => {
-    const existingItem = prev.find(
-      (item) =>
-        item.productId === productId &&
-        item.size === size
-    );
-
-    if (existingItem) {
-      return prev.map((item) =>
-        item.productId === productId &&
-        item.size === size
-          ? {
-              ...item,
-              quantity: item.quantity + quantity,
-            }
-          : item
-      );
+  const getCartData = async () => {
+    if (
+      !userData?._id ||
+      !serverUrl
+    ) {
+      setCartItems({});
+      return;
     }
 
-    return [
-      ...prev,
-      {
-        productId,
-        size,
-        quantity,
-      },
-    ];
-  });
-};
+    try {
+      setCartLoading(true);
 
-  // ---------------- REMOVE FROM CART ----------------
+      const response = await axios.get(
+        `${serverUrl}/api/cart/get`,
+        {
+          withCredentials: true,
+        }
+      );
 
-  const removeFromCart = (productId, size) => {
-    setCartItems((prev) =>
-      prev.filter(
-        (item) =>
-          !(
-            item.productId === productId &&
-            item.size === size
-          )
-      )
-    );
+      if (response.data.success) {
+        setCartItems(
+          response.data.cartData || {}
+        );
+      } else {
+        setCartItems({});
+      }
+
+    } catch (error) {
+      console.log(
+        "Get Cart Error:",
+        error.response?.data ||
+          error.message
+      );
+
+      setCartItems({});
+
+    } finally {
+      setCartLoading(false);
+    }
   };
 
-  // ---------------- UPDATE QUANTITY ----------------
+  // ==================================================
+  // LOAD CART WHEN USER CHANGES
+  // ==================================================
 
-  const updateQuantity = (
+  useEffect(() => {
+    if (
+      userData?._id &&
+      serverUrl
+    ) {
+      getCartData();
+
+    } else {
+      setCartItems({});
+    }
+
+  }, [
+    userData?._id,
+    serverUrl,
+  ]);
+
+  // ==================================================
+  // ADD TO CART
+  // ==================================================
+
+  const addToCart = async (
+    productId,
+    size,
+    quantity = 1
+  ) => {
+    if (
+      !userData?._id ||
+      !serverUrl
+    ) {
+      return false;
+    }
+
+    try {
+      const response =
+        await axios.post(
+          `${serverUrl}/api/cart/add`,
+          {
+            productId,
+            size,
+            quantity:
+              Number(quantity),
+          },
+          {
+            withCredentials: true,
+          }
+        );
+
+      if (response.data.success) {
+        setCartItems(
+          response.data.cartData || {}
+        );
+
+        return true;
+      }
+
+      return false;
+
+    } catch (error) {
+      console.log(
+        "Add To Cart Error:",
+        error.response?.data ||
+          error.message
+      );
+
+      return false;
+    }
+  };
+
+  // ==================================================
+  // UPDATE CART QUANTITY
+  // ==================================================
+
+  const updateQuantity = async (
     productId,
     size,
     quantity
   ) => {
-    if (quantity <= 0) {
-      removeFromCart(productId, size);
-      return;
+    if (
+      !userData?._id ||
+      !serverUrl
+    ) {
+      return false;
     }
 
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.productId === productId &&
-        item.size === size
-          ? {
-              ...item,
-              quantity,
-            }
-          : item
-      )
-    );
+    try {
+      const response =
+        await axios.post(
+          `${serverUrl}/api/cart/update`,
+          {
+            productId,
+            size,
+            quantity:
+              Number(quantity),
+          },
+          {
+            withCredentials: true,
+          }
+        );
+
+      if (response.data.success) {
+        setCartItems(
+          response.data.cartData || {}
+        );
+
+        return true;
+      }
+
+      return false;
+
+    } catch (error) {
+      console.log(
+        "Update Cart Error:",
+        error.response?.data ||
+          error.message
+      );
+
+      return false;
+    }
   };
 
-  // ---------------- CART COUNT ----------------
+  // ==================================================
+  // REMOVE FROM CART
+  // ==================================================
+
+  const removeFromCart = async (
+    productId,
+    size
+  ) => {
+    if (
+      !userData?._id ||
+      !serverUrl
+    ) {
+      return false;
+    }
+
+    try {
+      const response =
+        await axios.post(
+          `${serverUrl}/api/cart/remove`,
+          {
+            productId,
+            size,
+          },
+          {
+            withCredentials: true,
+          }
+        );
+
+      if (response.data.success) {
+        setCartItems(
+          response.data.cartData || {}
+        );
+
+        return true;
+      }
+
+      return false;
+
+    } catch (error) {
+      console.log(
+        "Remove Cart Error:",
+        error.response?.data ||
+          error.message
+      );
+
+      return false;
+    }
+  };
+
+  // ==================================================
+  // CLEAR CART
+  // ==================================================
+
+  const clearCart = async () => {
+    if (
+      !userData?._id ||
+      !serverUrl
+    ) {
+      setCartItems({});
+
+      return false;
+    }
+
+    try {
+      const response =
+        await axios.post(
+          `${serverUrl}/api/cart/clear`,
+          {},
+          {
+            withCredentials: true,
+          }
+        );
+
+      if (response.data.success) {
+        setCartItems({});
+
+        return true;
+      }
+
+      return false;
+
+    } catch (error) {
+      console.log(
+        "Clear Cart Error:",
+        error.response?.data ||
+          error.message
+      );
+
+      return false;
+    }
+  };
+
+  // ==================================================
+  // GET TOTAL CART QUANTITY
+  // ==================================================
 
   const getCartCount = () => {
-    return cartItems.reduce(
-      (total, item) =>
-        total + item.quantity,
-      0
+    let totalCount = 0;
+
+    Object.values(
+      cartItems || {}
+    ).forEach(
+      (productSizes) => {
+        Object.values(
+          productSizes || {}
+        ).forEach(
+          (quantity) => {
+            totalCount +=
+              Number(quantity || 0);
+          }
+        );
+      }
     );
+
+    return totalCount;
   };
 
-  // ---------------- CART TOTAL ----------------
+  // ==================================================
+  // GET TOTAL CART AMOUNT
+  // ==================================================
 
   const getCartAmount = () => {
-    return cartItems.reduce(
-      (total, item) => {
-        const product = products.find(
-          (product) =>
-            product._id === item.productId
-        );
+    let totalAmount = 0;
 
-        if (!product) return total;
+    Object.entries(
+      cartItems || {}
+    ).forEach(
+      ([
+        productId,
+        productSizes,
+      ]) => {
+        const product =
+          products.find(
+            (item) =>
+              item._id ===
+              productId
+          );
 
-        return (
-          total +
-          product.price * item.quantity
+        if (!product) {
+          return;
+        }
+
+        Object.values(
+          productSizes || {}
+        ).forEach(
+          (quantity) => {
+            totalAmount +=
+              Number(
+                product.price || 0
+              ) *
+              Number(
+                quantity || 0
+              );
+          }
         );
-      },
-      0
+      }
     );
+
+    return totalAmount;
   };
 
+  // ==================================================
+  // CONTEXT VALUE
+  // ==================================================
+
   const value = {
+    // Products
+
     products,
+
     setProducts,
+
     loading,
+
     getProducts,
 
+    // Store
+
     currency,
+
     deliveryFee,
 
+    // Cart
+
     cartItems,
+
     setCartItems,
+
+    cartLoading,
+
+    getCartData,
+
     addToCart,
-    removeFromCart,
+
     updateQuantity,
+
+    removeFromCart,
+
+    clearCart,
+
     getCartCount,
+
     getCartAmount,
   };
 
   return (
-    <shopDataContext.Provider value={value}>
+    <shopDataContext.Provider
+      value={value}
+    >
       {children}
     </shopDataContext.Provider>
   );
