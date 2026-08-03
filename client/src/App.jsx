@@ -1,4 +1,6 @@
-import React, { useContext } from "react";
+import React, {
+  useContext,
+} from "react";
 
 import {
   Routes,
@@ -15,35 +17,47 @@ import ProductDetail from "./pages/ProductDetail";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Cart from "./pages/Cart";
+import PlaceOrder from "./pages/PlaceOrder";
+import Order from "./pages/Order";
 
 import {
   userDataContext,
 } from "./context/UserContext";
 
+
 function App() {
-  const { userData } =
-    useContext(userDataContext);
+
+  const {
+    userData,
+  } = useContext(
+    userDataContext
+  );
 
   const location =
     useLocation();
 
+
   return (
+
     <Routes>
 
-      {/* HOME */}
+      {/* ================= HOME ================= */}
 
       <Route
         path="/"
-        element={<Home />}
+        element={
+          <Home />
+        }
       />
 
 
-      {/* LOGIN */}
+      {/* ================= LOGIN ================= */}
 
       <Route
         path="/login"
         element={
           userData ? (
+
             <Navigate
               to={
                 location.state?.from ||
@@ -51,19 +65,23 @@ function App() {
               }
               replace
             />
+
           ) : (
+
             <Login />
+
           )
         }
       />
 
 
-      {/* SIGN UP */}
+      {/* ================= SIGN UP ================= */}
 
       <Route
         path="/signup"
         element={
           userData ? (
+
             <Navigate
               to={
                 location.state?.from ||
@@ -71,14 +89,17 @@ function App() {
               }
               replace
             />
+
           ) : (
+
             <Registration />
+
           )
         }
       />
 
 
-      {/* COLLECTIONS */}
+      {/* ================= COLLECTIONS ================= */}
 
       <Route
         path="/collections"
@@ -88,7 +109,7 @@ function App() {
       />
 
 
-      {/* PRODUCT DETAIL */}
+      {/* ================= PRODUCT DETAILS ================= */}
 
       <Route
         path="/product/:id"
@@ -98,14 +119,17 @@ function App() {
       />
 
 
-      {/* CART */}
+      {/* ================= CART ================= */}
 
       <Route
         path="/cart"
         element={
           userData ? (
+
             <Cart />
+
           ) : (
+
             <Navigate
               to="/login"
               state={{
@@ -113,20 +137,73 @@ function App() {
               }}
               replace
             />
+
           )
         }
       />
 
 
-      {/* ABOUT */}
+      {/* ================= PLACE ORDER ================= */}
 
       <Route
-        path="/about"
-        element={<About />}
+        path="/placeorder"
+        element={
+          userData ? (
+
+            <PlaceOrder />
+
+          ) : (
+
+            <Navigate
+              to="/login"
+              state={{
+                from:
+                  "/placeorder",
+              }}
+              replace
+            />
+
+          )
+        }
       />
 
 
-      {/* CONTACT */}
+      {/* ================= MY ORDERS ================= */}
+
+      <Route
+        path="/orders"
+        element={
+          userData ? (
+
+            <Order />
+
+          ) : (
+
+            <Navigate
+              to="/login"
+              state={{
+                from:
+                  "/orders",
+              }}
+              replace
+            />
+
+          )
+        }
+      />
+
+
+      {/* ================= ABOUT ================= */}
+
+      <Route
+        path="/about"
+        element={
+          <About />
+        }
+      />
+
+
+      {/* ================= CONTACT ================= */}
 
       <Route
         path="/contact"
@@ -136,7 +213,7 @@ function App() {
       />
 
 
-      {/* INVALID ROUTES */}
+      {/* ================= INVALID ROUTES ================= */}
 
       <Route
         path="*"
@@ -149,7 +226,9 @@ function App() {
       />
 
     </Routes>
+
   );
 }
+
 
 export default App;

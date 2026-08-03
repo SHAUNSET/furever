@@ -9,6 +9,7 @@ import userRoutes from "./routes/userRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import feedbackRoutes from "./routes/feedbackRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
 
 dotenv.config();
 
@@ -22,12 +23,15 @@ await connectDB();
 
 const app = express();
 
-const port = process.env.PORT || 8000;
+const port =
+  process.env.PORT || 8000;
 
 
 // ---------------- MIDDLEWARES ----------------
 
-app.use(express.json());
+app.use(
+  express.json()
+);
 
 app.use(
   express.urlencoded({
@@ -35,7 +39,9 @@ app.use(
   })
 );
 
-app.use(cookieParser());
+app.use(
+  cookieParser()
+);
 
 app.use(
   cors({
@@ -84,17 +90,32 @@ app.use(
 );
 
 
+// ---------------- ORDER ROUTES ----------------
+
+console.log(
+  "✅ Mounting order routes at /api/order"
+);
+
+app.use(
+  "/api/order",
+  orderRoutes
+);
+
+
 // ---------------- CART TEST ROUTE ----------------
 
 app.get(
   "/api/cart-test",
+
   (req, res) => {
 
-    res.status(200).json({
+    return res.status(200).json({
+
       success: true,
 
       message:
         "Backend is running and cart testing route works",
+
     });
 
   }
@@ -105,9 +126,10 @@ app.get(
 
 app.get(
   "/",
+
   (req, res) => {
 
-    res.send(
+    return res.send(
       "FurEver Backend Running 🚀"
     );
 
@@ -119,6 +141,7 @@ app.get(
 
 app.listen(
   port,
+
   () => {
 
     console.log(
