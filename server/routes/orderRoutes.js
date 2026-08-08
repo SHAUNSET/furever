@@ -1,23 +1,39 @@
 import express from "express";
 
+
 import {
 
   placeOrder,
 
+  placeOrderRazorpay,
+
+  verifyPayment,
+
   getUserOrders,
+
+  allOrders,
+
+  updateStatus,
 
 } from "../controller/orderController.js";
 
-import userAuth from "../middleware/userAuth.js";
+
+import userAuth
+from "../middleware/userAuth.js";
+
+
+import adminAuth
+from "../middleware/adminAuth.js";
 
 
 const orderRoutes =
+
   express.Router();
 
 
-// ===============================
-// PLACE ORDER
-// ===============================
+// ==========================================================
+// PLACE COD ORDER
+// ==========================================================
 
 orderRoutes.post(
 
@@ -30,9 +46,39 @@ orderRoutes.post(
 );
 
 
-// ===============================
-// GET MY ORDERS
-// ===============================
+// ==========================================================
+// CREATE RAZORPAY PAYMENT ORDER
+// ==========================================================
+
+orderRoutes.post(
+
+  "/placeorderrazorpay",
+
+  userAuth,
+
+  placeOrderRazorpay
+
+);
+
+
+// ==========================================================
+// VERIFY RAZORPAY PAYMENT
+// ==========================================================
+
+orderRoutes.post(
+
+  "/verifypayment",
+
+  userAuth,
+
+  verifyPayment
+
+);
+
+
+// ==========================================================
+// GET LOGGED-IN USER ORDERS
+// ==========================================================
 
 orderRoutes.get(
 
@@ -41,6 +87,36 @@ orderRoutes.get(
   userAuth,
 
   getUserOrders
+
+);
+
+
+// ==========================================================
+// GET ALL ORDERS — ADMIN
+// ==========================================================
+
+orderRoutes.get(
+
+  "/allorders",
+
+  adminAuth,
+
+  allOrders
+
+);
+
+
+// ==========================================================
+// UPDATE ORDER STATUS — ADMIN
+// ==========================================================
+
+orderRoutes.put(
+
+  "/updatestatus/:orderId",
+
+  adminAuth,
+
+  updateStatus
 
 );
 

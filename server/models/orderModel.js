@@ -67,7 +67,7 @@ const orderSchema = new mongoose.Schema(
         "Placed",
         "Processing",
         "Shipped",
-        "Out for Delivery",
+        "Out for delivery",
         "Delivered",
         "Cancelled",
       ],
@@ -79,7 +79,7 @@ const orderSchema = new mongoose.Schema(
       required: true,
       enum: [
         "COD",
-        "Online",
+        "Razorpay",
       ],
     },
 
@@ -87,6 +87,12 @@ const orderSchema = new mongoose.Schema(
     payment: {
       type: Boolean,
       default: false,
+    },
+
+    // Razorpay payment ID (set once payment is verified)
+    paymentId: {
+      type: String,
+      default: "",
     },
   },
   {

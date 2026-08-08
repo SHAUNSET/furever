@@ -24,6 +24,8 @@ import {
   ArrowLeft,
   PackageCheck,
   CheckCircle2,
+  CreditCard,
+  AlertCircle,
 } from "lucide-react";
 
 import Nav from "../components/Nav";
@@ -39,11 +41,19 @@ import {
 } from "../context/ShopContext";
 
 
+// ============================================================
+// PLACE ORDER
+// ============================================================
+
 function PlaceOrder() {
 
   const navigate =
     useNavigate();
 
+
+  // ==========================================================
+  // CONTEXT
+  // ==========================================================
 
   const {
     serverUrl,
@@ -64,9 +74,18 @@ function PlaceOrder() {
   );
 
 
-  // ==========================================
+  // ==========================================================
+  // RAZORPAY KEY
+  // ==========================================================
+
+  const razorpayKeyId =
+    import.meta.env
+      .VITE_RAZORPAY_KEY_ID;
+
+
+  // ==========================================================
   // FORM DATA
-  // ==========================================
+  // ==========================================================
 
   const [
     formData,
@@ -94,9 +113,9 @@ function PlaceOrder() {
   });
 
 
-  // ==========================================
+  // ==========================================================
   // PAYMENT METHOD
-  // ==========================================
+  // ==========================================================
 
   const [
     paymentMethod,
@@ -106,9 +125,9 @@ function PlaceOrder() {
   );
 
 
-  // ==========================================
+  // ==========================================================
   // LOADING
-  // ==========================================
+  // ==========================================================
 
   const [
     placingOrder,
@@ -118,9 +137,9 @@ function PlaceOrder() {
   );
 
 
-  // ==========================================
+  // ==========================================================
   // ERROR
-  // ==========================================
+  // ==========================================================
 
   const [
     errorMessage,
@@ -130,9 +149,9 @@ function PlaceOrder() {
   );
 
 
-  // ==========================================
-  // SUCCESS MESSAGE
-  // ==========================================
+  // ==========================================================
+  // SUCCESS
+  // ==========================================================
 
   const [
     successMessage,
@@ -142,9 +161,9 @@ function PlaceOrder() {
   );
 
 
-  // ==========================================
-  // ON CHANGE HANDLER
-  // ==========================================
+  // ==========================================================
+  // INPUT CHANGE
+  // ==========================================================
 
   const onChangeHandler = (
     event
@@ -157,13 +176,18 @@ function PlaceOrder() {
 
 
     setFormData(
-      (previousData) => ({
+
+      (
+        previousData
+      ) => ({
 
         ...previousData,
 
-        [name]: value,
+        [name]:
+          value,
 
       })
+
     );
 
 
@@ -174,19 +198,23 @@ function PlaceOrder() {
   };
 
 
-  // ==========================================
+  // ==========================================================
   // CREATE ORDER ITEMS
-  // ==========================================
+  // ==========================================================
 
   const orderItems =
+
     useMemo(
+
       () => {
 
         const items = [];
 
 
         Object.entries(
+
           cartItems || {}
+
         ).forEach(
 
           ([
@@ -195,9 +223,12 @@ function PlaceOrder() {
           ]) => {
 
             const product =
+
               products?.find(
 
-                (item) =>
+                (
+                  item
+                ) =>
 
                   item._id ===
                   productId
@@ -216,7 +247,9 @@ function PlaceOrder() {
 
 
             Object.entries(
+
               productSizes
+
             ).forEach(
 
               ([
@@ -244,11 +277,13 @@ function PlaceOrder() {
                     product.name,
 
                   price:
+
                     Number(
                       product.price
                     ),
 
                   quantity:
+
                     Number(
                       quantity
                     ),
@@ -282,39 +317,31 @@ function PlaceOrder() {
     );
 
 
-  // ==========================================
+  // ==========================================================
   // CART CALCULATIONS
-  // ==========================================
+  // ==========================================================
 
   const cartAmount =
 
     typeof getCartAmount ===
     "function"
 
-      ?
+      ? Number(
+          getCartAmount()
+        )
 
-      Number(
-        getCartAmount()
-      )
-
-      :
-
-      0;
+      : 0;
 
 
   const finalDeliveryFee =
 
     cartAmount > 0
 
-      ?
+      ? Number(
+          deliveryFee
+        )
 
-      Number(
-        deliveryFee
-      )
-
-      :
-
-      0;
+      : 0;
 
 
   const totalAmount =
@@ -324,131 +351,516 @@ function PlaceOrder() {
     finalDeliveryFee;
 
 
-  // ==========================================
-  // PLACE ORDER
-  // ==========================================
+  // ==========================================================
+  // ADDRESS DATA
+  // ==========================================================
 
-  const onSubmitHandler =
-    async (
-      event
-    ) => {
+  const getAddressData = () => ({
 
-      event.preventDefault();
+    firstName:
+      formData.firstName,
+
+    lastName:
+      formData.lastName,
+
+    email:
+      formData.email,
+
+    phone:
+      formData.phone,
+
+    street:
+      formData.street,
+
+    city:
+      formData.city,
+
+    state:
+      formData.state,
+
+    zipcode:
+      formData.zipcode,
+
+    country:
+      formData.country,
+
+  });
 
 
-      if (
-        orderItems.length === 0
-      ) {
+  // ==========================================================
+  // ORDER DATA
+  // ==========================================================
 
-        setErrorMessage(
+  const getOrderData = () => ({
 
-          "Your cart is empty. Please add products before placing an order."
+    items:
+      orderItems,
+
+    amount:
+      totalAmount,
+
+    address:
+      getAddressData(),
+
+  });
+
+
+  // ==========================================================
+  // ORDER SUCCESS
+  // ==========================================================
+
+  const handleOrderSuccess = (
+    order,
+    message
+  ) => {
+
+    if (
+      order
+    ) {
+
+      sessionStorage.setItem(
+
+        "latestOrder",
+
+        JSON.stringify(
+          order
+        )
+
+      );
+
+    }
+
+
+    setSuccessMessage(
+
+      message ||
+
+      "Order placed successfully!"
+
+    );
+
+
+    setCartItems(
+      {}
+    );
+
+
+    setTimeout(
+
+      () => {
+
+        navigate(
+
+          "/orders",
+
+          {
+            replace:
+              true,
+          }
+
+        );
+
+      },
+
+      1500
+
+    );
+
+  };
+
+
+  // ==========================================================
+  // INITIALIZE RAZORPAY
+  // ==========================================================
+
+  const initPay = async (
+    razorpayOrder
+  ) => {
+
+    if (
+      !window.Razorpay
+    ) {
+
+      setErrorMessage(
+
+        "Razorpay checkout could not load. Please refresh and try again."
+
+      );
+
+
+      setPlacingOrder(
+        false
+      );
+
+
+      return;
+
+    }
+
+
+    if (
+      !razorpayKeyId
+    ) {
+
+      setErrorMessage(
+
+        "VITE_RAZORPAY_KEY_ID is missing from the frontend .env file."
+
+      );
+
+
+      setPlacingOrder(
+        false
+      );
+
+
+      return;
+
+    }
+
+
+    const options = {
+
+      key:
+        razorpayKeyId,
+
+
+      amount:
+        razorpayOrder.amount,
+
+
+      currency:
+
+        razorpayOrder.currency ||
+
+        "INR",
+
+
+      name:
+        "FurEver",
+
+
+      description:
+        "Order Payment",
+
+
+      order_id:
+        razorpayOrder.id,
+
+
+      prefill: {
+
+        name:
+
+          `${formData.firstName} ${formData.lastName}`
+
+            .trim(),
+
+
+        email:
+          formData.email,
+
+
+        contact:
+          formData.phone,
+
+      },
+
+
+      notes: {
+
+        customer_name:
+
+          `${formData.firstName} ${formData.lastName}`
+
+            .trim(),
+
+      },
+
+
+      theme: {
+
+        color:
+          "#FF5C35",
+
+      },
+
+
+      handler: async (
+        response
+      ) => {
+
+        try {
+
+          setPlacingOrder(
+            true
+          );
+
+
+          const verificationResult =
+
+            await axios.post(
+
+              `${serverUrl}/api/order/verifypayment`,
+
+              {
+
+                razorpay_order_id:
+
+                  response
+                    .razorpay_order_id,
+
+
+                razorpay_payment_id:
+
+                  response
+                    .razorpay_payment_id,
+
+
+                razorpay_signature:
+
+                  response
+                    .razorpay_signature,
+
+              },
+
+              {
+
+                withCredentials:
+                  true,
+
+              }
+
+            );
+
+
+          if (
+            verificationResult
+              .data
+              ?.success
+          ) {
+
+            handleOrderSuccess(
+
+              verificationResult
+                .data
+                ?.order,
+
+              verificationResult
+                .data
+                ?.message ||
+
+              "Payment successful! Your order has been placed."
+
+            );
+
+
+            return;
+
+          }
+
+
+          setErrorMessage(
+
+            verificationResult
+              .data
+              ?.message ||
+
+            "Payment verification failed."
+
+          );
+
+        }
+
+        catch (
+          error
+        ) {
+
+          console.log(
+
+            "Razorpay Verification Error:",
+
+            error
+              ?.response
+              ?.data ||
+
+            error
+              ?.message
+
+          );
+
+
+          setErrorMessage(
+
+            error
+              ?.response
+              ?.data
+              ?.message ||
+
+            "Payment was completed, but verification failed."
+
+          );
+
+        }
+
+        finally {
+
+          setPlacingOrder(
+            false
+          );
+
+        }
+
+      },
+
+
+      modal: {
+
+        ondismiss: () => {
+
+          setPlacingOrder(
+            false
+          );
+
+        },
+
+      },
+
+    };
+
+
+    const rzp =
+
+      new window.Razorpay(
+        options
+      );
+
+
+    rzp.on(
+
+      "payment.failed",
+
+      (
+        response
+      ) => {
+
+        console.log(
+
+          "Razorpay Payment Failed:",
+
+          response
 
         );
 
 
-        return;
+        setErrorMessage(
+
+          response
+            ?.error
+            ?.description ||
+
+          "Payment failed. Please try again."
+
+        );
+
+
+        setPlacingOrder(
+          false
+        );
 
       }
 
+    );
+
+
+    rzp.open();
+
+  };
+
+
+  // ==========================================================
+  // PLACE ORDER
+  // ==========================================================
+
+  const onSubmitHandler = async (
+    event
+  ) => {
+
+    event.preventDefault();
+
+
+    if (
+      orderItems.length === 0
+    ) {
+
+      setErrorMessage(
+
+        "Your cart is empty. Please add products before placing an order."
+
+      );
+
+      return;
+
+    }
+
+
+    try {
+
+      setPlacingOrder(
+        true
+      );
+
+
+      setErrorMessage(
+        ""
+      );
+
+
+      setSuccessMessage(
+        ""
+      );
+
+
+      const orderData =
+
+        getOrderData();
+
+
+      // ======================================================
+      // RAZORPAY
+      // ======================================================
 
       if (
         paymentMethod ===
         "Razorpay"
       ) {
 
-        setErrorMessage(
+        if (
+          !window.Razorpay
+        ) {
 
-          "Razorpay payment is not connected yet. Please select Cash on Delivery."
+          setErrorMessage(
 
-        );
+            "Razorpay checkout is unavailable. Please refresh the page."
 
-
-        return;
-
-      }
-
-
-      try {
-
-        setPlacingOrder(
-          true
-        );
+          );
 
 
-        setErrorMessage(
-          ""
-        );
+          setPlacingOrder(
+            false
+          );
 
 
-        setSuccessMessage(
-          ""
-        );
+          return;
 
+        }
 
-        // ======================================
-        // ADDRESS
-        // ======================================
-
-        const address = {
-
-          firstName:
-            formData.firstName,
-
-          lastName:
-            formData.lastName,
-
-          email:
-            formData.email,
-
-          phone:
-            formData.phone,
-
-          street:
-            formData.street,
-
-          city:
-            formData.city,
-
-          state:
-            formData.state,
-
-          zipcode:
-            formData.zipcode,
-
-          country:
-            formData.country,
-
-        };
-
-
-        // ======================================
-        // ORDER DATA
-        // ======================================
-
-        const orderData = {
-
-          items:
-            orderItems,
-
-          amount:
-            totalAmount,
-
-          address:
-            address,
-
-        };
-
-
-        // ======================================
-        // API REQUEST
-        // ======================================
 
         const result =
 
           await axios.post(
 
-            `${serverUrl}/api/order/placeorder`,
+            `${serverUrl}/api/order/placeorderrazorpay`,
 
             orderData,
 
@@ -464,76 +876,28 @@ function PlaceOrder() {
 
         console.log(
 
-          "Place Order Result:",
+          "Razorpay Order:",
 
           result.data
 
         );
 
 
-        // ======================================
-        // SUCCESS
-        // ======================================
-
         if (
-          result.data.success
+          !result.data?.success
         ) {
 
-          // Store the newly created order
-          // because the backend currently
-          // has no GET orders endpoint.
+          setErrorMessage(
 
-          sessionStorage.setItem(
+            result.data?.message ||
 
-            "latestOrder",
-
-            JSON.stringify(
-              result.data.order
-            )
+            "Unable to initialize Razorpay."
 
           );
 
 
-          setSuccessMessage(
-
-            result.data.message ||
-
-            "Order placed successfully!"
-
-          );
-
-
-          // Clear frontend cart
-
-          setCartItems(
-            {}
-          );
-
-
-          // Redirect after showing
-          // the success message.
-
-          setTimeout(
-
-            () => {
-
-              navigate(
-
-                "/orders",
-
-                {
-
-                  replace:
-                    true,
-
-                }
-
-              );
-
-            },
-
-            1500
-
+          setPlacingOrder(
+            false
           );
 
 
@@ -542,40 +906,138 @@ function PlaceOrder() {
         }
 
 
-        setErrorMessage(
+        const razorpayOrder =
 
-          result.data.message ||
+          result.data
+            ?.razorpayOrder ||
 
-          "Unable to place your order."
+          result.data
+            ?.paymentOrder ||
+
+          result.data
+            ?.order;
+
+
+        if (
+          !razorpayOrder?.id
+        ) {
+
+          setErrorMessage(
+
+            "Invalid Razorpay order received from the server."
+
+          );
+
+
+          setPlacingOrder(
+            false
+          );
+
+
+          return;
+
+        }
+
+
+        await initPay(
+          razorpayOrder
+        );
+
+
+        return;
+
+      }
+
+
+      // ======================================================
+      // CASH ON DELIVERY
+      // ======================================================
+
+      const result =
+
+        await axios.post(
+
+          `${serverUrl}/api/order/placeorder`,
+
+          orderData,
+
+          {
+
+            withCredentials:
+              true,
+
+          }
 
         );
 
 
-      } catch (
-        error
+      if (
+        result.data?.success
       ) {
 
-        console.log(
+        handleOrderSuccess(
 
-          "Place Order Error:",
+          result.data?.order,
 
-          error.response?.data ||
+          result.data?.message ||
 
-          error.message
-
-        );
-
-
-        setErrorMessage(
-
-          error.response?.data?.message ||
-
-          "Something went wrong while placing your order."
+          "Order placed successfully!"
 
         );
 
 
-      } finally {
+        return;
+
+      }
+
+
+      setErrorMessage(
+
+        result.data?.message ||
+
+        "Unable to place your order."
+
+      );
+
+    }
+
+    catch (
+      error
+    ) {
+
+      console.log(
+
+        "Place Order Error:",
+
+        error
+          ?.response
+          ?.data ||
+
+        error
+          ?.message
+
+      );
+
+
+      setErrorMessage(
+
+        error
+          ?.response
+          ?.data
+          ?.message ||
+
+        "Something went wrong while placing your order."
+
+      );
+
+    }
+
+    finally {
+
+      if (
+        paymentMethod ===
+        "COD"
+      ) {
 
         setPlacingOrder(
           false
@@ -583,12 +1045,14 @@ function PlaceOrder() {
 
       }
 
-    };
+    }
+
+  };
 
 
-  // ==========================================
+  // ==========================================================
   // EMPTY CART
-  // ==========================================
+  // ==========================================================
 
   if (
     orderItems.length === 0 &&
@@ -605,21 +1069,13 @@ function PlaceOrder() {
         <main
 
           className="
-
-            min-h-[calc(100vh-80px)]
-
-            bg-[#FFFBF7]
-
             flex
-
+            min-h-[calc(100vh-80px)]
             items-center
-
             justify-center
-
+            bg-[#FFFBF7]
             px-4
-
             py-12
-
           "
 
         >
@@ -627,78 +1083,39 @@ function PlaceOrder() {
           <div
 
             className="
-
               w-full
-
               max-w-xl
-
               rounded-[2rem]
-
               border
-
-              border-[#F0E2D7]
-
+              border-[#F0E4DA]
               bg-white
-
-              px-6
-
-              py-12
-
+              p-8
               text-center
-
               shadow-xl
-
-              sm:px-12
-
+              sm:p-12
             "
 
           >
 
-            <div
+            <ShoppingBag
+
+              size={55}
 
               className="
-
                 mx-auto
-
-                mb-6
-
-                flex
-
-                h-20
-
-                w-20
-
-                items-center
-
-                justify-center
-
-                rounded-full
-
-                bg-[#FFF1EA]
-
                 text-[#FF5C35]
-
               "
 
-            >
-
-              <ShoppingBag
-                size={36}
-              />
-
-            </div>
+            />
 
 
             <h1
 
               className="
-
-                text-4xl
-
-                font-bold
-
-                text-[#181D27]
-
+                mt-6
+                text-3xl
+                font-black
+                text-[#202020]
               "
 
             >
@@ -711,55 +1128,53 @@ function PlaceOrder() {
             <p
 
               className="
-
+                mx-auto
                 mt-3
-
+                max-w-md
+                text-sm
+                leading-6
                 text-[#82796F]
-
               "
 
             >
 
-              Add products to your cart before proceeding to checkout.
+              Add some products to your cart before proceeding to checkout.
 
             </p>
 
 
             <button
 
-              onClick={() =>
+              type="button"
 
-                navigate(
-                  "/collections"
+              onClick={
+                () => navigate(
+                  "/collection"
                 )
-
               }
 
               className="
-
-                mt-8
-
-                rounded-full
-
+                mt-7
+                inline-flex
+                items-center
+                gap-2
+                rounded-xl
                 bg-[#FF5C35]
-
-                px-7
-
-                py-3.5
-
-                font-semibold
-
+                px-6
+                py-3
+                font-bold
                 text-white
-
                 transition
-
                 hover:bg-[#E94B27]
-
               "
 
             >
 
               Continue Shopping
+
+              <ChevronRight
+                size={18}
+              />
 
             </button>
 
@@ -774,193 +1189,9 @@ function PlaceOrder() {
   }
 
 
-  // ==========================================
-  // SUCCESS SCREEN
-  // ==========================================
-
-  if (
-    successMessage
-  ) {
-
-    return (
-
-      <>
-
-        <Nav />
-
-
-        <main
-
-          className="
-
-            min-h-[calc(100vh-80px)]
-
-            bg-[#FFFBF7]
-
-            flex
-
-            items-center
-
-            justify-center
-
-            px-4
-
-            py-12
-
-          "
-
-        >
-
-          <motion.div
-
-            initial={{
-
-              opacity: 0,
-
-              y: 25,
-
-            }}
-
-            animate={{
-
-              opacity: 1,
-
-              y: 0,
-
-            }}
-
-            className="
-
-              w-full
-
-              max-w-xl
-
-              rounded-[2rem]
-
-              border
-
-              border-[#F0E2D7]
-
-              bg-white
-
-              px-6
-
-              py-12
-
-              text-center
-
-              shadow-xl
-
-              sm:px-12
-
-            "
-
-          >
-
-            <div
-
-              className="
-
-                mx-auto
-
-                mb-6
-
-                flex
-
-                h-24
-
-                w-24
-
-                items-center
-
-                justify-center
-
-                rounded-full
-
-                bg-green-50
-
-                text-green-600
-
-              "
-
-            >
-
-              <CheckCircle2
-                size={50}
-              />
-
-            </div>
-
-
-            <h1
-
-              className="
-
-                text-4xl
-
-                font-bold
-
-                text-[#181D27]
-
-              "
-
-            >
-
-              Order Placed Successfully!
-
-            </h1>
-
-
-            <p
-
-              className="
-
-                mt-4
-
-                text-[#82796F]
-
-              "
-
-            >
-
-              Your order has been received.
-              Redirecting you to your order details...
-
-            </p>
-
-
-            <LoaderCircle
-
-              size={26}
-
-              className="
-
-                mx-auto
-
-                mt-7
-
-                animate-spin
-
-                text-[#FF5C35]
-
-              "
-
-            />
-
-          </motion.div>
-
-        </main>
-
-      </>
-
-    );
-
-  }
-
-
-  // ==========================================
-  // MAIN PAGE
-  // ==========================================
+  // ==========================================================
+  // MAIN UI
+  // ==========================================================
 
   return (
 
@@ -972,23 +1203,13 @@ function PlaceOrder() {
       <main
 
         className="
-
-          min-h-screen
-
+          min-h-[calc(100vh-80px)]
           bg-[#FFFBF7]
-
           px-4
-
           py-8
-
           sm:px-6
-
           lg:px-10
-
-          xl:px-16
-
-          2xl:px-24
-
+          lg:py-12
         "
 
       >
@@ -996,200 +1217,274 @@ function PlaceOrder() {
         <div
 
           className="
-
             mx-auto
-
-            mb-8
-
             w-full
-
-            max-w-[1600px]
-
+            max-w-7xl
           "
 
         >
 
-          <button
+          {/* HEADER */}
 
-            type="button"
-
-            onClick={() =>
-
-              navigate(
-                "/cart"
-              )
-
-            }
+          <div
 
             className="
-
-              mb-4
-
+              mb-8
               flex
-
-              items-center
-
-              gap-2
-
-              text-sm
-
-              font-semibold
-
-              text-[#82796F]
-
-              hover:text-[#FF5C35]
-
+              flex-col
+              gap-5
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
             "
 
           >
 
-            <ArrowLeft
-              size={18}
-            />
+            <div>
 
-            Back to Cart
+              <button
 
-          </button>
+                type="button"
 
+                onClick={
+                  () => navigate(
+                    -1
+                  )
+                }
 
-          <h1
+                className="
+                  inline-flex
+                  items-center
+                  gap-2
+                  text-sm
+                  font-bold
+                  text-[#82796F]
+                  transition
+                  hover:text-[#FF5C35]
+                "
 
-            className="
+              >
 
-              text-4xl
+                <ArrowLeft
+                  size={18}
+                />
 
-              font-bold
+                Back
 
-              text-[#181D27]
-
-              sm:text-5xl
-
-            "
-
-          >
-
-            Complete your
-
-            <span
-
-              className="
-
-                ml-2
-
-                text-[#FF5C35]
-
-              "
-
-            >
-
-              order
-
-            </span>
-
-          </h1>
+              </button>
 
 
-          <p
+              <h1
 
-            className="
+                className="
+                  mt-4
+                  text-3xl
+                  font-black
+                  text-[#202020]
+                  sm:text-4xl
+                "
 
-              mt-2
+              >
 
-              text-[#82796F]
+                Checkout
 
-              sm:text-lg
-
-            "
-
-          >
-
-            Enter your delivery information and review your order.
-
-          </p>
-
-        </div>
+              </h1>
 
 
-        <form
+              <p
 
-          onSubmit={
-            onSubmitHandler
-          }
+                className="
+                  mt-2
+                  text-sm
+                  text-[#82796F]
+                "
 
-          className="
+              >
 
-            mx-auto
+                Complete your details and place your order securely.
 
-            grid
+              </p>
 
-            w-full
+            </div>
 
-            max-w-[1600px]
-
-            grid-cols-1
-
-            gap-8
-
-            xl:grid-cols-[minmax(0,1.45fr)_minmax(380px,0.75fr)]
-
-            xl:items-start
-
-          "
-
-        >
-
-          {/* DELIVERY INFORMATION */}
-
-          <section
-
-            className="
-
-              overflow-hidden
-
-              rounded-[2rem]
-
-              border
-
-              border-[#F0E2D7]
-
-              bg-white
-
-              shadow-xl
-
-            "
-
-          >
 
             <div
 
               className="
-
-                border-b
-
-                border-[#F0E2D7]
-
-                bg-[#FFF8F1]
-
-                px-6
-
-                py-6
-
-                sm:px-8
-
+                flex
+                items-center
+                gap-3
+                rounded-2xl
+                border
+                border-[#E9E0D7]
+                bg-white
+                px-5
+                py-3
               "
 
             >
 
+              <ShieldCheck
+
+                size={22}
+
+                className="
+                  text-[#34A853]
+                "
+
+              />
+
+
+              <div>
+
+                <p
+
+                  className="
+                    text-xs
+                    text-[#82796F]
+                  "
+
+                >
+
+                  Secure checkout
+
+                </p>
+
+
+                <p
+
+                  className="
+                    text-sm
+                    font-bold
+                    text-[#202020]
+                  "
+
+                >
+
+                  Protected payment
+
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          {/* MESSAGES */}
+
+          {
+
+            errorMessage && (
+
               <div
 
                 className="
-
+                  mb-6
                   flex
-
                   items-center
+                  gap-3
+                  rounded-2xl
+                  border
+                  border-red-200
+                  bg-red-50
+                  px-5
+                  py-4
+                  text-sm
+                  font-semibold
+                  text-red-600
+                "
 
-                  gap-4
+              >
 
+                <AlertCircle
+                  size={20}
+                />
+
+                {errorMessage}
+
+              </div>
+
+            )
+
+          }
+
+
+          {
+
+            successMessage && (
+
+              <div
+
+                className="
+                  mb-6
+                  flex
+                  items-center
+                  gap-3
+                  rounded-2xl
+                  border
+                  border-green-200
+                  bg-green-50
+                  px-5
+                  py-4
+                  text-sm
+                  font-semibold
+                  text-green-700
+                "
+
+              >
+
+                <CheckCircle2
+                  size={20}
+                />
+
+                {successMessage}
+
+              </div>
+
+            )
+
+          }
+
+
+          <form
+
+            onSubmit={
+              onSubmitHandler
+            }
+
+            className="
+              grid
+              grid-cols-1
+              gap-8
+              lg:grid-cols-[minmax(0,1fr)_420px]
+            "
+
+          >
+
+            {/* LEFT */}
+
+            <div
+
+              className="
+                space-y-7
+              "
+
+            >
+
+              {/* DELIVERY DETAILS */}
+
+              <section
+
+                className="
+                  rounded-[2rem]
+                  border
+                  border-[#EEE2D8]
+                  bg-white
+                  p-5
+                  shadow-sm
+                  sm:p-8
                 "
 
               >
@@ -1197,450 +1492,401 @@ function PlaceOrder() {
                 <div
 
                   className="
-
+                    mb-7
                     flex
-
-                    h-12
-
-                    w-12
-
                     items-center
-
-                    justify-center
-
-                    rounded-2xl
-
-                    bg-[#FF5C35]
-
-                    text-white
-
+                    gap-3
                   "
 
                 >
 
-                  <MapPin
-                    size={23}
+                  <div
+
+                    className="
+                      flex
+                      h-11
+                      w-11
+                      items-center
+                      justify-center
+                      rounded-2xl
+                      bg-[#FFF0E9]
+                      text-[#FF5C35]
+                    "
+
+                  >
+
+                    <MapPin
+                      size={21}
+                    />
+
+                  </div>
+
+
+                  <div>
+
+                    <h2
+
+                      className="
+                        text-xl
+                        font-black
+                        text-[#202020]
+                      "
+
+                    >
+
+                      Delivery Details
+
+                    </h2>
+
+
+                    <p
+
+                      className="
+                        mt-1
+                        text-xs
+                        text-[#82796F]
+                      "
+
+                    >
+
+                      Enter the address where you want your order delivered.
+
+                    </p>
+
+                  </div>
+
+                </div>
+
+
+                <div
+
+                  className="
+                    grid
+                    grid-cols-1
+                    gap-4
+                    sm:grid-cols-2
+                  "
+
+                >
+
+                  <input
+
+                    required
+
+                    name="firstName"
+
+                    value={
+                      formData.firstName
+                    }
+
+                    onChange={
+                      onChangeHandler
+                    }
+
+                    placeholder="First name"
+
+                    className="
+                      rounded-xl
+                      border
+                      border-[#E8DDD2]
+                      px-4
+                      py-3.5
+                      text-sm
+                      outline-none
+                      transition
+                      focus:border-[#FF5C35]
+                      focus:ring-4
+                      focus:ring-[#FF5C35]/10
+                    "
+
+                  />
+
+
+                  <input
+
+                    required
+
+                    name="lastName"
+
+                    value={
+                      formData.lastName
+                    }
+
+                    onChange={
+                      onChangeHandler
+                    }
+
+                    placeholder="Last name"
+
+                    className="
+                      rounded-xl
+                      border
+                      border-[#E8DDD2]
+                      px-4
+                      py-3.5
+                      text-sm
+                      outline-none
+                      transition
+                      focus:border-[#FF5C35]
+                      focus:ring-4
+                      focus:ring-[#FF5C35]/10
+                    "
+
+                  />
+
+
+                  <input
+
+                    required
+
+                    type="email"
+
+                    name="email"
+
+                    value={
+                      formData.email
+                    }
+
+                    onChange={
+                      onChangeHandler
+                    }
+
+                    placeholder="Email address"
+
+                    className="
+                      rounded-xl
+                      border
+                      border-[#E8DDD2]
+                      px-4
+                      py-3.5
+                      text-sm
+                      outline-none
+                      transition
+                      focus:border-[#FF5C35]
+                      focus:ring-4
+                      focus:ring-[#FF5C35]/10
+                    "
+
+                  />
+
+
+                  <input
+
+                    required
+
+                    type="tel"
+
+                    name="phone"
+
+                    value={
+                      formData.phone
+                    }
+
+                    onChange={
+                      onChangeHandler
+                    }
+
+                    placeholder="Phone number"
+
+                    className="
+                      rounded-xl
+                      border
+                      border-[#E8DDD2]
+                      px-4
+                      py-3.5
+                      text-sm
+                      outline-none
+                      transition
+                      focus:border-[#FF5C35]
+                      focus:ring-4
+                      focus:ring-[#FF5C35]/10
+                    "
+
+                  />
+
+
+                  <input
+
+                    required
+
+                    name="street"
+
+                    value={
+                      formData.street
+                    }
+
+                    onChange={
+                      onChangeHandler
+                    }
+
+                    placeholder="Street address"
+
+                    className="
+                      rounded-xl
+                      border
+                      border-[#E8DDD2]
+                      px-4
+                      py-3.5
+                      text-sm
+                      outline-none
+                      transition
+                      focus:border-[#FF5C35]
+                      focus:ring-4
+                      focus:ring-[#FF5C35]/10
+                      sm:col-span-2
+                    "
+
+                  />
+
+
+                  <input
+
+                    required
+
+                    name="city"
+
+                    value={
+                      formData.city
+                    }
+
+                    onChange={
+                      onChangeHandler
+                    }
+
+                    placeholder="City"
+
+                    className="
+                      rounded-xl
+                      border
+                      border-[#E8DDD2]
+                      px-4
+                      py-3.5
+                      text-sm
+                      outline-none
+                      transition
+                      focus:border-[#FF5C35]
+                      focus:ring-4
+                      focus:ring-[#FF5C35]/10
+                    "
+
+                  />
+
+
+                  <input
+
+                    required
+
+                    name="state"
+
+                    value={
+                      formData.state
+                    }
+
+                    onChange={
+                      onChangeHandler
+                    }
+
+                    placeholder="State"
+
+                    className="
+                      rounded-xl
+                      border
+                      border-[#E8DDD2]
+                      px-4
+                      py-3.5
+                      text-sm
+                      outline-none
+                      transition
+                      focus:border-[#FF5C35]
+                      focus:ring-4
+                      focus:ring-[#FF5C35]/10
+                    "
+
+                  />
+
+
+                  <input
+
+                    required
+
+                    name="zipcode"
+
+                    value={
+                      formData.zipcode
+                    }
+
+                    onChange={
+                      onChangeHandler
+                    }
+
+                    placeholder="PIN code"
+
+                    className="
+                      rounded-xl
+                      border
+                      border-[#E8DDD2]
+                      px-4
+                      py-3.5
+                      text-sm
+                      outline-none
+                      transition
+                      focus:border-[#FF5C35]
+                      focus:ring-4
+                      focus:ring-[#FF5C35]/10
+                    "
+
+                  />
+
+
+                  <input
+
+                    required
+
+                    name="country"
+
+                    value={
+                      formData.country
+                    }
+
+                    onChange={
+                      onChangeHandler
+                    }
+
+                    placeholder="Country"
+
+                    className="
+                      rounded-xl
+                      border
+                      border-[#E8DDD2]
+                      px-4
+                      py-3.5
+                      text-sm
+                      outline-none
+                      transition
+                      focus:border-[#FF5C35]
+                      focus:ring-4
+                      focus:ring-[#FF5C35]/10
+                    "
+
                   />
 
                 </div>
 
+              </section>
 
-                <div>
 
-                  <h2
+              {/* PAYMENT */}
 
-                    className="
-
-                      text-3xl
-
-                      font-bold
-
-                      text-[#181D27]
-
-                    "
-
-                  >
-
-                    Delivery Information
-
-                  </h2>
-
-
-                  <p
-
-                    className="
-
-                      mt-1
-
-                      text-sm
-
-                      text-[#82796F]
-
-                    "
-
-                  >
-
-                    Where should we deliver your order?
-
-                  </p>
-
-                </div>
-
-              </div>
-
-            </div>
-
-
-            <div
-
-              className="
-
-                grid
-
-                grid-cols-1
-
-                gap-5
-
-                p-6
-
-                sm:grid-cols-2
-
-                sm:p-8
-
-              "
-
-            >
-
-              {[
-                {
-                  label: "First Name",
-                  name: "firstName",
-                  type: "text",
-                  placeholder: "Shaunak",
-                },
-
-                {
-                  label: "Last Name",
-                  name: "lastName",
-                  type: "text",
-                  placeholder: "Naik",
-                },
-
-                {
-                  label: "Email",
-                  name: "email",
-                  type: "email",
-                  placeholder: "you@email.com",
-                },
-
-                {
-                  label: "Phone Number",
-                  name: "phone",
-                  type: "tel",
-                  placeholder: "9876543210",
-                },
-
-              ].map(
-
-                (field) => (
-
-                  <div
-                    key={field.name}
-                  >
-
-                    <label
-
-                      className="
-
-                        font-semibold
-
-                        text-[#3A342F]
-
-                      "
-
-                    >
-
-                      {field.label}
-
-                    </label>
-
-
-                    <input
-
-                      required
-
-                      type={
-                        field.type
-                      }
-
-                      name={
-                        field.name
-                      }
-
-                      value={
-                        formData[
-                          field.name
-                        ]
-                      }
-
-                      onChange={
-                        onChangeHandler
-                      }
-
-                      placeholder={
-                        field.placeholder
-                      }
-
-                      className="
-
-                        mt-2
-
-                        w-full
-
-                        rounded-xl
-
-                        border
-
-                        border-[#E8DDD3]
-
-                        px-4
-
-                        py-3
-
-                        outline-none
-
-                        transition
-
-                        focus:border-[#FF5C35]
-
-                        focus:ring-2
-
-                        focus:ring-[#FF5C35]/10
-
-                      "
-
-                    />
-
-                  </div>
-
-                )
-
-              )}
-
-
-              <div
+              <section
 
                 className="
-
-                  sm:col-span-2
-
-                "
-
-              >
-
-                <label
-
-                  className="
-
-                    font-semibold
-
-                    text-[#3A342F]
-
-                  "
-
-                >
-
-                  Street Address
-
-                </label>
-
-
-                <input
-
-                  required
-
-                  type="text"
-
-                  name="street"
-
-                  value={
-                    formData.street
-                  }
-
-                  onChange={
-                    onChangeHandler
-                  }
-
-                  placeholder="House number, building, street"
-
-                  className="
-
-                    mt-2
-
-                    w-full
-
-                    rounded-xl
-
-                    border
-
-                    border-[#E8DDD3]
-
-                    px-4
-
-                    py-3
-
-                    outline-none
-
-                    transition
-
-                    focus:border-[#FF5C35]
-
-                  "
-
-                />
-
-              </div>
-
-
-              {[
-                {
-                  label: "City",
-                  name: "city",
-                  placeholder: "Pune",
-                },
-
-                {
-                  label: "State",
-                  name: "state",
-                  placeholder: "Maharashtra",
-                },
-
-                {
-                  label: "PIN Code",
-                  name: "zipcode",
-                  placeholder: "411001",
-                },
-
-                {
-                  label: "Country",
-                  name: "country",
-                  placeholder: "India",
-                },
-
-              ].map(
-
-                (field) => (
-
-                  <div
-                    key={field.name}
-                  >
-
-                    <label
-
-                      className="
-
-                        font-semibold
-
-                        text-[#3A342F]
-
-                      "
-
-                    >
-
-                      {field.label}
-
-                    </label>
-
-
-                    <input
-
-                      required
-
-                      type="text"
-
-                      name={
-                        field.name
-                      }
-
-                      value={
-                        formData[
-                          field.name
-                        ]
-                      }
-
-                      onChange={
-                        onChangeHandler
-                      }
-
-                      placeholder={
-                        field.placeholder
-                      }
-
-                      className="
-
-                        mt-2
-
-                        w-full
-
-                        rounded-xl
-
-                        border
-
-                        border-[#E8DDD3]
-
-                        px-4
-
-                        py-3
-
-                        outline-none
-
-                        transition
-
-                        focus:border-[#FF5C35]
-
-                      "
-
-                    />
-
-                  </div>
-
-                )
-
-              )}
-
-            </div>
-
-          </section>
-
-
-          {/* RIGHT SIDE */}
-
-          <aside
-
-            className="
-
-              space-y-6
-
-              xl:sticky
-
-              xl:top-28
-
-            "
-
-          >
-
-            {/* CART TOTAL */}
-
-            <section
-
-              className="
-
-                rounded-[2rem]
-
-                border
-
-                border-[#F0E2D7]
-
-                bg-white
-
-                p-6
-
-                shadow-xl
-
-              "
-
-            >
-
-              <div
-
-                className="
-
-                  flex
-
-                  items-center
-
-                  gap-3
-
+                  rounded-[2rem]
+                  border
+                  border-[#EEE2D8]
+                  bg-white
+                  p-5
+                  shadow-sm
+                  sm:p-8
                 "
 
               >
@@ -1648,29 +1894,376 @@ function PlaceOrder() {
                 <div
 
                   className="
-
+                    mb-6
                     flex
-
-                    h-11
-
-                    w-11
-
                     items-center
+                    gap-3
+                  "
 
+                >
+
+                  <div
+
+                    className="
+                      flex
+                      h-11
+                      w-11
+                      items-center
+                      justify-center
+                      rounded-2xl
+                      bg-[#FFF0E9]
+                      text-[#FF5C35]
+                    "
+
+                  >
+
+                    <CreditCard
+                      size={21}
+                    />
+
+                  </div>
+
+
+                  <div>
+
+                    <h2
+
+                      className="
+                        text-xl
+                        font-black
+                        text-[#202020]
+                      "
+
+                    >
+
+                      Payment Method
+
+                    </h2>
+
+
+                    <p
+
+                      className="
+                        mt-1
+                        text-xs
+                        text-[#82796F]
+                      "
+
+                    >
+
+                      Choose your preferred payment method.
+
+                    </p>
+
+                  </div>
+
+                </div>
+
+
+                <div
+
+                  className="
+                    space-y-4
+                  "
+
+                >
+
+                  {/* COD */}
+
+                  <button
+
+                    type="button"
+
+                    onClick={
+                      () => setPaymentMethod(
+                        "COD"
+                      )
+                    }
+
+                    className={`
+                      flex
+                      w-full
+                      items-center
+                      justify-between
+                      rounded-2xl
+                      border-2
+                      p-4
+                      text-left
+                      transition
+
+                      ${
+                        paymentMethod ===
+                        "COD"
+
+                          ? "border-[#FF5C35] bg-[#FFF5F0]"
+
+                          : "border-[#EEE2D8] bg-white"
+                      }
+                    `}
+
+                  >
+
+                    <div
+
+                      className="
+                        flex
+                        items-center
+                        gap-4
+                      "
+
+                    >
+
+                      <div
+
+                        className="
+                          flex
+                          h-11
+                          w-11
+                          items-center
+                          justify-center
+                          rounded-xl
+                          bg-[#FFF0E9]
+                          text-[#FF5C35]
+                        "
+
+                      >
+
+                        <Banknote
+                          size={22}
+                        />
+
+                      </div>
+
+
+                      <div>
+
+                        <p
+
+                          className="
+                            font-bold
+                            text-[#202020]
+                          "
+
+                        >
+
+                          Cash on Delivery
+
+                        </p>
+
+
+                        <p
+
+                          className="
+                            mt-1
+                            text-xs
+                            text-[#82796F]
+                          "
+
+                        >
+
+                          Pay when your order arrives.
+
+                        </p>
+
+                      </div>
+
+                    </div>
+
+
+                    {
+
+                      paymentMethod ===
+                      "COD" && (
+
+                        <CheckCircle2
+
+                          size={22}
+
+                          className="
+                            text-[#FF5C35]
+                          "
+
+                        />
+
+                      )
+
+                    }
+
+                  </button>
+
+
+                  {/* RAZORPAY */}
+
+                  <button
+
+                    type="button"
+
+                    onClick={
+                      () => setPaymentMethod(
+                        "Razorpay"
+                      )
+                    }
+
+                    className={`
+                      flex
+                      w-full
+                      items-center
+                      justify-between
+                      rounded-2xl
+                      border-2
+                      p-4
+                      text-left
+                      transition
+
+                      ${
+                        paymentMethod ===
+                        "Razorpay"
+
+                          ? "border-[#FF5C35] bg-[#FFF5F0]"
+
+                          : "border-[#EEE2D8] bg-white"
+                      }
+                    `}
+
+                  >
+
+                    <div
+
+                      className="
+                        flex
+                        items-center
+                        gap-4
+                      "
+
+                    >
+
+                      <img
+
+                        src={
+                          razorpayLogo
+                        }
+
+                        alt="Razorpay"
+
+                        className="
+                          h-11
+                          w-11
+                          rounded-xl
+                          object-contain
+                        "
+
+                      />
+
+
+                      <div>
+
+                        <p
+
+                          className="
+                            font-bold
+                            text-[#202020]
+                          "
+
+                        >
+
+                          Razorpay
+
+                        </p>
+
+
+                        <p
+
+                          className="
+                            mt-1
+                            text-xs
+                            text-[#82796F]
+                          "
+
+                        >
+
+                          Pay securely using UPI, cards or net banking.
+
+                        </p>
+
+                      </div>
+
+                    </div>
+
+
+                    {
+
+                      paymentMethod ===
+                      "Razorpay" && (
+
+                        <CheckCircle2
+
+                          size={22}
+
+                          className="
+                            text-[#FF5C35]
+                          "
+
+                        />
+
+                      )
+
+                    }
+
+                  </button>
+
+                </div>
+
+              </section>
+
+            </div>
+
+
+            {/* RIGHT ORDER SUMMARY */}
+
+            <aside
+
+              className="
+                h-fit
+                rounded-[2rem]
+                border
+                border-[#EEE2D8]
+                bg-white
+                p-5
+                shadow-sm
+                lg:sticky
+                lg:top-6
+                sm:p-7
+              "
+
+            >
+
+              <div
+
+                className="
+                  flex
+                  items-center
+                  gap-3
+                "
+
+              >
+
+                <div
+
+                  className="
+                    flex
+                    h-11
+                    w-11
+                    items-center
                     justify-center
-
-                    rounded-xl
-
-                    bg-[#FFF1EA]
-
+                    rounded-2xl
+                    bg-[#FFF0E9]
                     text-[#FF5C35]
-
                   "
 
                 >
 
                   <ShoppingBag
-                    size={22}
+                    size={21}
                   />
 
                 </div>
@@ -1681,18 +2274,14 @@ function PlaceOrder() {
                   <h2
 
                     className="
-
-                      text-2xl
-
-                      font-bold
-
-                      text-[#181D27]
-
+                      text-xl
+                      font-black
+                      text-[#202020]
                     "
 
                   >
 
-                    Cart Totals
+                    Order Summary
 
                   </h2>
 
@@ -1700,25 +2289,17 @@ function PlaceOrder() {
                   <p
 
                     className="
-
-                      text-sm
-
+                      mt-1
+                      text-xs
                       text-[#82796F]
-
                     "
 
                   >
 
-                    {orderItems.length}
-
-                    {" "}
-
-                    item
-
+                    {orderItems.length} item
                     {orderItems.length !== 1
                       ? "s"
                       : ""
-
                     }
 
                   </p>
@@ -1731,155 +2312,146 @@ function PlaceOrder() {
               <div
 
                 className="
-
                   mt-6
-
-                  max-h-[280px]
-
+                  max-h-[350px]
                   space-y-4
-
                   overflow-y-auto
-
+                  pr-1
                 "
 
               >
 
-                {orderItems.map(
+                {
 
-                  (
-                    item,
-                    index
-                  ) => (
+                  orderItems.map(
 
-                    <div
-
-                      key={`${item.productId}-${item.size}-${index}`}
-
-                      className="
-
-                        flex
-
-                        gap-3
-
-                        border-b
-
-                        border-[#F4EAE3]
-
-                        pb-4
-
-                      "
-
-                    >
-
-                      <img
-
-                        src={
-                          item.image
-                        }
-
-                        alt={
-                          item.name
-                        }
-
-                        className="
-
-                          h-16
-
-                          w-14
-
-                          rounded-xl
-
-                          bg-[#FFF8F1]
-
-                          object-cover
-
-                        "
-
-                      />
-
+                    (
+                      item,
+                      index
+                    ) => (
 
                       <div
 
+                        key={`
+                          ${item.productId}
+                          -
+                          ${item.size}
+                          -
+                          ${index}
+                        `}
+
                         className="
-
-                          min-w-0
-
-                          flex-1
-
+                          flex
+                          gap-4
                         "
 
                       >
 
-                        <p
+                        <img
+
+                          src={
+                            item.image
+                          }
+
+                          alt={
+                            item.name
+                          }
 
                           className="
+                            h-20
+                            w-16
+                            rounded-xl
+                            border
+                            border-[#F0E6DD]
+                            object-cover
+                          "
 
-                            truncate
+                        />
 
-                            font-semibold
 
-                            text-[#181D27]
+                        <div
 
+                          className="
+                            min-w-0
+                            flex-1
                           "
 
                         >
 
-                          {item.name}
+                          <p
 
-                        </p>
+                            className="
+                              truncate
+                              text-sm
+                              font-bold
+                              text-[#202020]
+                            "
+
+                          >
+
+                            {item.name}
+
+                          </p>
 
 
-                        <p
+                          <p
 
-                          className="
+                            className="
+                              mt-1
+                              text-xs
+                              text-[#82796F]
+                            "
 
-                            mt-1
+                          >
 
-                            text-xs
+                            Size: {item.size}
 
-                            text-[#82796F]
+                            {" · "}
 
-                          "
+                            Qty: {item.quantity}
 
-                        >
+                          </p>
 
-                          Size: {item.size}
 
-                          {" · "}
+                          <p
 
-                          Qty: {item.quantity}
+                            className="
+                              mt-2
+                              text-sm
+                              font-black
+                              text-[#FF5C35]
+                            "
 
-                        </p>
+                          >
+
+                            {
+
+                              currency
+
+                            }
+
+                            {
+
+                              (
+                                item.price *
+                                item.quantity
+                              ).toLocaleString(
+                                "en-IN"
+                              )
+
+                            }
+
+                          </p>
+
+                        </div>
 
                       </div>
 
-
-                      <p
-
-                        className="
-
-                          whitespace-nowrap
-
-                          font-bold
-
-                          text-[#181D27]
-
-                        "
-
-                      >
-
-                        {currency}
-
-                        {item.price *
-                          item.quantity}
-
-                      </p>
-
-                    </div>
+                    )
 
                   )
 
-                )}
+                }
 
               </div>
 
@@ -1887,13 +2459,11 @@ function PlaceOrder() {
               <div
 
                 className="
-
-                  mt-5
-
-                  space-y-3
-
-                  text-sm
-
+                  mt-7
+                  space-y-4
+                  border-t
+                  border-[#EEE2D8]
+                  pt-6
                 "
 
               >
@@ -1901,13 +2471,11 @@ function PlaceOrder() {
                 <div
 
                   className="
-
                     flex
-
+                    items-center
                     justify-between
-
+                    text-sm
                     text-[#82796F]
-
                   "
 
                 >
@@ -1916,11 +2484,25 @@ function PlaceOrder() {
                     Subtotal
                   </span>
 
-                  <span>
+
+                  <span
+
+                    className="
+                      font-bold
+                      text-[#202020]
+                    "
+
+                  >
 
                     {currency}
 
-                    {cartAmount}
+                    {
+
+                      cartAmount.toLocaleString(
+                        "en-IN"
+                      )
+
+                    }
 
                   </span>
 
@@ -1930,13 +2512,11 @@ function PlaceOrder() {
                 <div
 
                   className="
-
                     flex
-
+                    items-center
                     justify-between
-
+                    text-sm
                     text-[#82796F]
-
                   "
 
                 >
@@ -1945,449 +2525,85 @@ function PlaceOrder() {
                     Delivery
                   </span>
 
-                  <span>
-
-                    {currency}
-
-                    {finalDeliveryFee}
-
-                  </span>
-
-                </div>
-
-
-                <div
-
-                  className="
-
-                    flex
-
-                    justify-between
-
-                    border-t
-
-                    border-[#EDE1D7]
-
-                    pt-4
-
-                    text-xl
-
-                    font-bold
-
-                  "
-
-                >
-
-                  <span>
-                    Total
-                  </span>
 
                   <span
 
                     className="
-
-                      text-[#FF5C35]
-
+                      font-bold
+                      text-[#202020]
                     "
 
                   >
 
                     {currency}
 
-                    {totalAmount}
+                    {
+
+                      finalDeliveryFee.toLocaleString(
+                        "en-IN"
+                      )
+
+                    }
+
+                  </span>
+
+                </div>
+
+
+                <div
+
+                  className="
+                    flex
+                    items-center
+                    justify-between
+                    border-t
+                    border-dashed
+                    border-[#E6D9CE]
+                    pt-5
+                  "
+
+                >
+
+                  <span
+
+                    className="
+                      text-base
+                      font-black
+                      text-[#202020]
+                    "
+
+                  >
+
+                    Total
+
+                  </span>
+
+
+                  <span
+
+                    className="
+                      text-2xl
+                      font-black
+                      text-[#FF5C35]
+                    "
+
+                  >
+
+                    {currency}
+
+                    {
+
+                      totalAmount.toLocaleString(
+                        "en-IN"
+                      )
+
+                    }
 
                   </span>
 
                 </div>
 
               </div>
-
-            </section>
-
-
-            {/* PAYMENT */}
-
-            <section
-
-              className="
-
-                rounded-[2rem]
-
-                border
-
-                border-[#F0E2D7]
-
-                bg-white
-
-                p-6
-
-                shadow-xl
-
-              "
-
-            >
-
-              <h2
-
-                className="
-
-                  text-2xl
-
-                  font-bold
-
-                  text-[#181D27]
-
-                "
-
-              >
-
-                Payment Details
-
-              </h2>
-
-
-              <div
-
-                className="
-
-                  mt-5
-
-                  space-y-3
-
-                "
-
-              >
-
-                <button
-
-                  type="button"
-
-                  onClick={() =>
-
-                    setPaymentMethod(
-                      "COD"
-                    )
-
-                  }
-
-                  className={`
-
-                    flex
-
-                    w-full
-
-                    items-center
-
-                    justify-between
-
-                    rounded-2xl
-
-                    border-2
-
-                    p-4
-
-                    text-left
-
-                    transition
-
-                    ${
-
-                      paymentMethod ===
-                      "COD"
-
-                        ?
-
-                        "border-[#FF5C35] bg-[#FFF5F0]"
-
-                        :
-
-                        "border-[#EEE2D8]"
-
-                    }
-
-                  `}
-
-                >
-
-                  <div
-
-                    className="
-
-                      flex
-
-                      items-center
-
-                      gap-3
-
-                    "
-
-                  >
-
-                    <Banknote
-                      size={24}
-                    />
-
-
-                    <div>
-
-                      <p
-
-                        className="
-
-                          font-bold
-
-                        "
-
-                      >
-
-                        Cash on Delivery
-
-                      </p>
-
-
-                      <p
-
-                        className="
-
-                          text-xs
-
-                          text-[#82796F]
-
-                        "
-
-                      >
-
-                        Pay when delivered
-
-                      </p>
-
-                    </div>
-
-                  </div>
-
-
-                  <div
-
-                    className={`
-
-                      h-5
-
-                      w-5
-
-                      rounded-full
-
-                      border-2
-
-                      p-1
-
-                      ${
-
-                        paymentMethod ===
-                        "COD"
-
-                          ?
-
-                          "border-[#FF5C35]"
-
-                          :
-
-                          "border-[#CFC4BA]"
-
-                      }
-
-                    `}
-
-                  >
-
-                    {paymentMethod ===
-                      "COD" && (
-
-                      <div
-
-                        className="
-
-                          h-full
-
-                          w-full
-
-                          rounded-full
-
-                          bg-[#FF5C35]
-
-                        "
-
-                      />
-
-                    )}
-
-                  </div>
-
-                </button>
-
-
-                <button
-
-                  type="button"
-
-                  onClick={() =>
-
-                    setPaymentMethod(
-                      "Razorpay"
-                    )
-
-                  }
-
-                  className={`
-
-                    flex
-
-                    w-full
-
-                    items-center
-
-                    justify-between
-
-                    rounded-2xl
-
-                    border-2
-
-                    p-4
-
-                    text-left
-
-                    transition
-
-                    ${
-
-                      paymentMethod ===
-                      "Razorpay"
-
-                        ?
-
-                        "border-[#FF5C35] bg-[#FFF5F0]"
-
-                        :
-
-                        "border-[#EEE2D8]"
-
-                    }
-
-                  `}
-
-                >
-
-                  <div
-
-                    className="
-
-                      flex
-
-                      items-center
-
-                      gap-3
-
-                    "
-
-                  >
-
-                    <img
-
-                      src={
-                        razorpayLogo
-                      }
-
-                      alt="Razorpay"
-
-                      className="
-
-                        h-9
-
-                        w-9
-
-                        rounded-lg
-
-                        object-contain
-
-                      "
-
-                    />
-
-
-                    <div>
-
-                      <p
-
-                        className="
-
-                          font-bold
-
-                        "
-
-                      >
-
-                        Razorpay
-
-                      </p>
-
-
-                      <p
-
-                        className="
-
-                          text-xs
-
-                          text-[#82796F]
-
-                        "
-
-                      >
-
-                        Coming soon
-
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                </button>
-
-              </div>
-
-
-              {errorMessage && (
-
-                <div
-
-                  className="
-
-                    mt-5
-
-                    rounded-xl
-
-                    border
-
-                    border-red-200
-
-                    bg-red-50
-
-                    px-4
-
-                    py-3
-
-                    text-sm
-
-                    text-red-600
-
-                  "
-
-                >
-
-                  {errorMessage}
-
-                </div>
-
-              )}
 
 
               <motion.button
@@ -2399,86 +2615,96 @@ function PlaceOrder() {
                 }
 
                 whileTap={{
-
-                  scale: 0.98,
-
+                  scale:
+                    0.98,
                 }}
 
                 className="
-
-                  mt-6
-
+                  mt-7
                   flex
-
                   w-full
-
                   items-center
-
                   justify-center
-
                   gap-3
-
                   rounded-2xl
-
                   bg-[#FF5C35]
-
                   px-6
-
                   py-4
-
                   font-bold
-
                   text-white
-
                   shadow-lg
-
                   transition
-
                   hover:bg-[#E94B27]
-
+                  disabled:cursor-not-allowed
                   disabled:opacity-70
-
                 "
 
               >
 
-                {placingOrder ? (
+                {
 
-                  <>
+                  placingOrder
 
-                    <LoaderCircle
+                    ? (
 
-                      size={21}
+                      <>
 
-                      className="
+                        <LoaderCircle
 
-                        animate-spin
+                          size={21}
 
-                      "
+                          className="
+                            animate-spin
+                          "
 
-                    />
+                        />
 
-                    Placing Order...
 
-                  </>
+                        {
 
-                ) : (
+                          paymentMethod ===
+                          "Razorpay"
 
-                  <>
+                            ? "Opening secure payment..."
 
-                    <PackageCheck
-                      size={21}
-                    />
+                            : "Placing Order..."
 
-                    PLACE ORDER
+                        }
 
-                    <ChevronRight
-                      size={20}
-                    />
+                      </>
 
-                  </>
+                    )
 
-                )}
+                    : (
+
+                      <>
+
+                        <PackageCheck
+                          size={21}
+                        />
+
+
+                        {
+
+                          paymentMethod ===
+                          "Razorpay"
+
+                            ? "PAY WITH RAZORPAY"
+
+                            : "PLACE ORDER"
+
+                        }
+
+
+                        <ChevronRight
+                          size={20}
+                        />
+
+                      </>
+
+                    )
+
+                }
 
               </motion.button>
 
@@ -2486,38 +2712,37 @@ function PlaceOrder() {
               <div
 
                 className="
-
-                  mt-4
-
+                  mt-5
                   flex
-
                   items-center
-
                   justify-center
-
                   gap-2
-
+                  text-center
                   text-xs
-
                   text-[#82796F]
-
                 "
 
               >
 
                 <ShieldCheck
-                  size={15}
+
+                  size={16}
+
+                  className="
+                    text-[#34A853]
+                  "
+
                 />
 
-                Secure and protected checkout
+                Your payment information is secure.
 
               </div>
 
-            </section>
+            </aside>
 
-          </aside>
+          </form>
 
-        </form>
+        </div>
 
       </main>
 

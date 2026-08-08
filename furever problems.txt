@@ -9,3 +9,5 @@ PROBLEMS
 6)Search bar issue.....
 7)Be part of furever : what to do after more about mission
 8)improve footer functionality
+9)when add to cart is clicked and user is not logged in , still message comes product added successfully
+10)When the order in razorpay is cancelled the order still reaches admin side as payment false

@@ -19,6 +19,9 @@ import Contact from "./pages/Contact";
 import Cart from "./pages/Cart";
 import PlaceOrder from "./pages/PlaceOrder";
 import Order from "./pages/Order";
+import NotFound from "./pages/NotFound";
+
+import Ai from "./components/Ai";
 
 import {
   userDataContext,
@@ -33,201 +36,217 @@ function App() {
     userDataContext
   );
 
+
   const location =
     useLocation();
 
 
   return (
 
-    <Routes>
+    <>
 
-      {/* ================= HOME ================= */}
+      <Routes>
 
-      <Route
-        path="/"
-        element={
-          <Home />
-        }
-      />
+        {/* ================= HOME ================= */}
 
-
-      {/* ================= LOGIN ================= */}
-
-      <Route
-        path="/login"
-        element={
-          userData ? (
-
-            <Navigate
-              to={
-                location.state?.from ||
-                "/"
-              }
-              replace
-            />
-
-          ) : (
-
-            <Login />
-
-          )
-        }
-      />
+        <Route
+          path="/"
+          element={
+            <Home />
+          }
+        />
 
 
-      {/* ================= SIGN UP ================= */}
+        {/* ================= LOGIN ================= */}
 
-      <Route
-        path="/signup"
-        element={
-          userData ? (
+        <Route
+          path="/login"
+          element={
 
-            <Navigate
-              to={
-                location.state?.from ||
-                "/"
-              }
-              replace
-            />
+            userData ? (
 
-          ) : (
+              <Navigate
+                to={
+                  location.state?.from ||
+                  "/"
+                }
+                replace
+              />
 
-            <Registration />
+            ) : (
 
-          )
-        }
-      />
+              <Login />
 
+            )
 
-      {/* ================= COLLECTIONS ================= */}
-
-      <Route
-        path="/collections"
-        element={
-          <Collections />
-        }
-      />
+          }
+        />
 
 
-      {/* ================= PRODUCT DETAILS ================= */}
+        {/* ================= SIGN UP ================= */}
 
-      <Route
-        path="/product/:id"
-        element={
-          <ProductDetail />
-        }
-      />
+        <Route
+          path="/signup"
+          element={
 
+            userData ? (
 
-      {/* ================= CART ================= */}
+              <Navigate
+                to={
+                  location.state?.from ||
+                  "/"
+                }
+                replace
+              />
 
-      <Route
-        path="/cart"
-        element={
-          userData ? (
+            ) : (
 
-            <Cart />
+              <Registration />
 
-          ) : (
+            )
 
-            <Navigate
-              to="/login"
-              state={{
-                from: "/cart",
-              }}
-              replace
-            />
-
-          )
-        }
-      />
+          }
+        />
 
 
-      {/* ================= PLACE ORDER ================= */}
+        {/* ================= COLLECTIONS ================= */}
 
-      <Route
-        path="/placeorder"
-        element={
-          userData ? (
-
-            <PlaceOrder />
-
-          ) : (
-
-            <Navigate
-              to="/login"
-              state={{
-                from:
-                  "/placeorder",
-              }}
-              replace
-            />
-
-          )
-        }
-      />
+        <Route
+          path="/collections"
+          element={
+            <Collections />
+          }
+        />
 
 
-      {/* ================= MY ORDERS ================= */}
+        {/* ================= PRODUCT DETAILS ================= */}
 
-      <Route
-        path="/orders"
-        element={
-          userData ? (
-
-            <Order />
-
-          ) : (
-
-            <Navigate
-              to="/login"
-              state={{
-                from:
-                  "/orders",
-              }}
-              replace
-            />
-
-          )
-        }
-      />
+        <Route
+          path="/product/:id"
+          element={
+            <ProductDetail />
+          }
+        />
 
 
-      {/* ================= ABOUT ================= */}
+        {/* ================= CART ================= */}
 
-      <Route
-        path="/about"
-        element={
-          <About />
-        }
-      />
+        <Route
+          path="/cart"
+          element={
+
+            userData ? (
+
+              <Cart />
+
+            ) : (
+
+              <Navigate
+                to="/login"
+                state={{
+                  from: "/cart",
+                }}
+                replace
+              />
+
+            )
+
+          }
+        />
 
 
-      {/* ================= CONTACT ================= */}
+        {/* ================= PLACE ORDER ================= */}
 
-      <Route
-        path="/contact"
-        element={
-          <Contact />
-        }
-      />
+        <Route
+          path="/placeorder"
+          element={
+
+            userData ? (
+
+              <PlaceOrder />
+
+            ) : (
+
+              <Navigate
+                to="/login"
+                state={{
+                  from: "/placeorder",
+                }}
+                replace
+              />
+
+            )
+
+          }
+        />
 
 
-      {/* ================= INVALID ROUTES ================= */}
+        {/* ================= MY ORDERS ================= */}
 
-      <Route
-        path="*"
-        element={
-          <Navigate
-            to="/"
-            replace
-          />
-        }
-      />
+        <Route
+          path="/orders"
+          element={
 
-    </Routes>
+            userData ? (
+
+              <Order />
+
+            ) : (
+
+              <Navigate
+                to="/login"
+                state={{
+                  from: "/orders",
+                }}
+                replace
+              />
+
+            )
+
+          }
+        />
+
+
+        {/* ================= ABOUT ================= */}
+
+        <Route
+          path="/about"
+          element={
+            <About />
+          }
+        />
+
+
+        {/* ================= CONTACT ================= */}
+
+        <Route
+          path="/contact"
+          element={
+            <Contact />
+          }
+        />
+
+
+        {/* ================= 404 NOT FOUND ================= */}
+
+        <Route
+          path="*"
+          element={
+            <NotFound />
+          }
+        />
+
+      </Routes>
+
+
+      {/* ================= AI ASSISTANT ================= */}
+
+      <Ai />
+
+    </>
 
   );
+
 }
 
 
