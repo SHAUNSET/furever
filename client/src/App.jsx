@@ -21,8 +21,6 @@ import PlaceOrder from "./pages/PlaceOrder";
 import Order from "./pages/Order";
 import NotFound from "./pages/NotFound";
 
-import Ai from "./components/Ai";
-
 import {
   userDataContext,
 } from "./context/UserContext";
@@ -43,207 +41,198 @@ function App() {
 
   return (
 
-    <>
+    <Routes>
 
-      <Routes>
+      {/* ================= HOME ================= */}
 
-        {/* ================= HOME ================= */}
+      <Route
+        path="/"
+        element={
+          <Home />
+        }
+      />
 
-        <Route
-          path="/"
-          element={
-            <Home />
-          }
-        />
 
+      {/* ================= LOGIN ================= */}
 
-        {/* ================= LOGIN ================= */}
+      <Route
+        path="/login"
+        element={
 
-        <Route
-          path="/login"
-          element={
+          userData ? (
 
-            userData ? (
+            <Navigate
+              to={
+                location.state?.from ||
+                "/"
+              }
+              replace
+            />
 
-              <Navigate
-                to={
-                  location.state?.from ||
-                  "/"
-                }
-                replace
-              />
+          ) : (
 
-            ) : (
+            <Login />
 
-              <Login />
+          )
 
-            )
+        }
+      />
 
-          }
-        />
 
+      {/* ================= SIGN UP ================= */}
 
-        {/* ================= SIGN UP ================= */}
+      <Route
+        path="/signup"
+        element={
 
-        <Route
-          path="/signup"
-          element={
+          userData ? (
 
-            userData ? (
+            <Navigate
+              to={
+                location.state?.from ||
+                "/"
+              }
+              replace
+            />
 
-              <Navigate
-                to={
-                  location.state?.from ||
-                  "/"
-                }
-                replace
-              />
+          ) : (
 
-            ) : (
+            <Registration />
 
-              <Registration />
+          )
 
-            )
+        }
+      />
 
-          }
-        />
 
+      {/* ================= COLLECTIONS ================= */}
 
-        {/* ================= COLLECTIONS ================= */}
+      <Route
+        path="/collections"
+        element={
+          <Collections />
+        }
+      />
 
-        <Route
-          path="/collections"
-          element={
-            <Collections />
-          }
-        />
 
+      {/* ================= PRODUCT DETAILS ================= */}
 
-        {/* ================= PRODUCT DETAILS ================= */}
+      <Route
+        path="/product/:id"
+        element={
+          <ProductDetail />
+        }
+      />
 
-        <Route
-          path="/product/:id"
-          element={
-            <ProductDetail />
-          }
-        />
 
+      {/* ================= CART ================= */}
 
-        {/* ================= CART ================= */}
+      <Route
+        path="/cart"
+        element={
 
-        <Route
-          path="/cart"
-          element={
+          userData ? (
 
-            userData ? (
+            <Cart />
 
-              <Cart />
+          ) : (
 
-            ) : (
+            <Navigate
+              to="/login"
+              state={{
+                from: "/cart",
+              }}
+              replace
+            />
 
-              <Navigate
-                to="/login"
-                state={{
-                  from: "/cart",
-                }}
-                replace
-              />
+          )
 
-            )
+        }
+      />
 
-          }
-        />
 
+      {/* ================= PLACE ORDER ================= */}
 
-        {/* ================= PLACE ORDER ================= */}
+      <Route
+        path="/placeorder"
+        element={
 
-        <Route
-          path="/placeorder"
-          element={
+          userData ? (
 
-            userData ? (
+            <PlaceOrder />
 
-              <PlaceOrder />
+          ) : (
 
-            ) : (
+            <Navigate
+              to="/login"
+              state={{
+                from: "/placeorder",
+              }}
+              replace
+            />
 
-              <Navigate
-                to="/login"
-                state={{
-                  from: "/placeorder",
-                }}
-                replace
-              />
+          )
 
-            )
+        }
+      />
 
-          }
-        />
 
+      {/* ================= MY ORDERS ================= */}
 
-        {/* ================= MY ORDERS ================= */}
+      <Route
+        path="/orders"
+        element={
 
-        <Route
-          path="/orders"
-          element={
+          userData ? (
 
-            userData ? (
+            <Order />
 
-              <Order />
+          ) : (
 
-            ) : (
+            <Navigate
+              to="/login"
+              state={{
+                from: "/orders",
+              }}
+              replace
+            />
 
-              <Navigate
-                to="/login"
-                state={{
-                  from: "/orders",
-                }}
-                replace
-              />
+          )
 
-            )
+        }
+      />
 
-          }
-        />
 
+      {/* ================= ABOUT ================= */}
 
-        {/* ================= ABOUT ================= */}
+      <Route
+        path="/about"
+        element={
+          <About />
+        }
+      />
 
-        <Route
-          path="/about"
-          element={
-            <About />
-          }
-        />
 
+      {/* ================= CONTACT ================= */}
 
-        {/* ================= CONTACT ================= */}
+      <Route
+        path="/contact"
+        element={
+          <Contact />
+        }
+      />
 
-        <Route
-          path="/contact"
-          element={
-            <Contact />
-          }
-        />
 
+      {/* ================= 404 NOT FOUND ================= */}
 
-        {/* ================= 404 NOT FOUND ================= */}
+      <Route
+        path="*"
+        element={
+          <NotFound />
+        }
+      />
 
-        <Route
-          path="*"
-          element={
-            <NotFound />
-          }
-        />
-
-      </Routes>
-
-
-      {/* ================= AI ASSISTANT ================= */}
-
-      <Ai />
-
-    </>
+    </Routes>
 
   );
 
