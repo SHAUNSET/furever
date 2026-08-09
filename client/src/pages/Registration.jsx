@@ -8,6 +8,7 @@ import { authDataContext } from "../context/Authcontext.jsx";
 import { userDataContext } from "../context/UserContext.jsx";
 import { auth, provider } from "../utils/Firebase.js";
 import { signInWithPopup } from "firebase/auth";
+import paws from "../assets/paws.png";
 
 const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
@@ -148,8 +149,8 @@ export default function Registration() {
       <div className="flex items-center justify-between px-6 sm:px-10 py-6 sm:py-8">
         <a href="/" className="inline-flex items-center gap-2.5 group">
           <img
-            src="/paws.png"
-            alt="FurEver"
+  src="/paws.png"
+  alt="FurEver"
             className="w-10 h-10 sm:w-12 sm:h-12 object-contain group-hover:scale-105 transition-transform"
           />
 

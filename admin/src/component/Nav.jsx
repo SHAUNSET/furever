@@ -5,6 +5,8 @@ import { LogOut } from "lucide-react";
 import axios from "axios";
 import { authDataContext } from "../context/AuthContext";
 import { adminDataContext } from "../context/AdminContext";
+import paws from "../assets/paws.png";
+
 
 export default function Nav() {
   const navigate = useNavigate();
@@ -43,8 +45,8 @@ const handleLogout = async () => {
             className="flex items-center gap-3 cursor-pointer group"
           >
             <img
-              src="/paws.png"
-              alt="FurEver"
+  src="/paws.png"
+  alt="FurEver"
               className="w-11 h-11 object-contain transition-transform duration-300 group-hover:scale-110"
             />
 
