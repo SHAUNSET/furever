@@ -10,7 +10,8 @@ import { auth, provider } from "../utils/Firebase.js";
 import { signInWithPopup } from "firebase/auth";
 import paws from "../assets/paws.png";
 
-const isValidEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+const isValidEmail = (v) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
 export default function Registration() {
   const { serverUrl } = useContext(authDataContext);
@@ -149,8 +150,8 @@ export default function Registration() {
       <div className="flex items-center justify-between px-6 sm:px-10 py-6 sm:py-8">
         <a href="/" className="inline-flex items-center gap-2.5 group">
           <img
-  src="/paws.png"
-  alt="FurEver"
+            src={paws}
+            alt="FurEver"
             className="w-10 h-10 sm:w-12 sm:h-12 object-contain group-hover:scale-105 transition-transform"
           />
 
@@ -205,7 +206,7 @@ export default function Registration() {
               <div className="text-center py-8">
                 <div className="w-20 h-20 rounded-full bg-[#3B4CE0] flex items-center justify-center mx-auto mb-6">
                   <img
-                    src="/paws.png"
+                    src={paws}
                     alt=""
                     className="w-10 h-10 brightness-0 invert"
                   />
@@ -309,10 +310,16 @@ export default function Registration() {
 
                       <button
                         type="button"
-                        onClick={() => setShowPassword((prev) => !prev)}
+                        onClick={() =>
+                          setShowPassword((prev) => !prev)
+                        }
                         className="absolute right-5 top-1/2 -translate-y-1/2"
                       >
-                        {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+                        {showPassword ? (
+                          <EyeOff size={22} />
+                        ) : (
+                          <Eye size={22} />
+                        )}
                       </button>
                     </div>
 
@@ -334,7 +341,9 @@ export default function Registration() {
                     disabled={!allValid || status === "loading"}
                     className="w-full py-4 rounded-xl text-white font-semibold flex items-center justify-center gap-2 disabled:opacity-70"
                     style={{
-                      backgroundColor: allValid ? "#3B4CE0" : "#C7CAEB",
+                      backgroundColor: allValid
+                        ? "#3B4CE0"
+                        : "#C7CAEB",
                     }}
                   >
                     {status === "loading" ? (
@@ -353,7 +362,12 @@ export default function Registration() {
                   onClick={handleGoogleSignup}
                   className="w-full mt-5 bg-white rounded-2xl border border-[#EFEFF6] px-6 py-4 flex items-center justify-center gap-3"
                 >
-                  <img src={googleLogo} alt="" className="w-6 h-6" />
+                  <img
+                    src={googleLogo}
+                    alt=""
+                    className="w-6 h-6"
+                  />
+
                   <span className="text-lg font-medium">
                     Sign up with Google
                   </span>

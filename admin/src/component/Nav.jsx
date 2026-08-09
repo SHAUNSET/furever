@@ -7,46 +7,44 @@ import { authDataContext } from "../context/AuthContext";
 import { adminDataContext } from "../context/AdminContext";
 import paws from "../assets/paws.png";
 
-
 export default function Nav() {
   const navigate = useNavigate();
 
   const { serverUrl } = useContext(authDataContext);
   const { setAdminData } = useContext(adminDataContext);
 
-const handleLogout = async () => {
-  try {
-    await axios.post(
-      `${serverUrl}/api/auth/logout`,
-      {},
-      {
-        withCredentials: true,
-      }
-    );
+  const handleLogout = async () => {
+    try {
+      await axios.post(
+        `${serverUrl}/api/auth/logout`,
+        {},
+        {
+          withCredentials: true,
+        }
+      );
 
-    setAdminData(null);
-    navigate("/login");
-  } catch (error) {
-    console.log(error);
-  }
-};
+      setAdminData(null);
+      navigate("/login");
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <header
       className="sticky top-0 z-50 w-full bg-[#FFFBF7] border-b border-[#F2E6DC] shadow-sm"
       style={{ fontFamily: "'Inter', sans-serif" }}
     >
-      <div className="w-full px-4 sm:px-6 lg:px-10 xl:px-16">
-        <div className="h-20 flex items-center justify-between">
-
+      <div className="w-full px-6 sm:px-10">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link
             to="/"
             className="flex items-center gap-3 cursor-pointer group"
           >
             <img
-  src="/paws.png"
-  alt="FurEver"
+              src={paws}
+              alt="FurEver"
               className="w-11 h-11 object-contain transition-transform duration-300 group-hover:scale-110"
             />
 
@@ -71,7 +69,6 @@ const handleLogout = async () => {
             <LogOut size={18} />
             Logout
           </motion.button>
-
         </div>
       </div>
     </header>
