@@ -46,8 +46,8 @@ app.use(
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",
-      "http://localhost:5174",
+      "https://furever-client.onrender.com",
+      "https://furever-admin.onrender.com",
     ],
 
     credentials: true,
