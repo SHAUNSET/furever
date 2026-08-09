@@ -8,7 +8,6 @@ import {
   generateAdminToken,
 } from "../config/token.js";
 
-
 // ======================================================
 // COOKIE OPTIONS
 // ======================================================
@@ -16,21 +15,19 @@ import {
 const isProduction =
   process.env.NODE_ENV === "production";
 
-
 const cookieOptions = {
-
   httpOnly: true,
 
-  secure:
-    isProduction,
+  secure: isProduction
+    ? true
+    : false,
 
-  sameSite:
-    isProduction
-      ? "none"
-      : "lax",
+  sameSite: isProduction
+    ? "none"
+    : "lax",
 
+  path: "/",
 };
-
 
 // ======================================================
 // REGISTER USER
@@ -40,15 +37,12 @@ export const registeration = async (
   req,
   res
 ) => {
-
   try {
-
     const {
       name,
       email,
       password,
     } = req.body;
-
 
     // -------------------------------
     // VALIDATION
@@ -59,62 +53,42 @@ export const registeration = async (
       !email ||
       !password
     ) {
-
       return res.status(400).json({
-
         success: false,
-
         message:
           "Name, email and password are required",
-
       });
-
     }
-
 
     const trimmedName =
       name.trim();
-
 
     const trimmedEmail =
       email
         .trim()
         .toLowerCase();
 
-
     if (
       !validator.isEmail(
         trimmedEmail
       )
     ) {
-
       return res.status(400).json({
-
         success: false,
-
         message:
           "Invalid email",
-
       });
-
     }
-
 
     if (
       password.length < 6
     ) {
-
       return res.status(400).json({
-
         success: false,
-
         message:
           "Password must be at least 6 characters",
-
       });
-
     }
-
 
     // -------------------------------
     // CHECK EXISTING USER
@@ -122,28 +96,19 @@ export const registeration = async (
 
     const existingUser =
       await User.findOne({
-
         email:
           trimmedEmail,
-
       });
-
 
     if (
       existingUser
     ) {
-
       return res.status(409).json({
-
         success: false,
-
         message:
           "User already exists",
-
       });
-
     }
-
 
     // -------------------------------
     // HASH PASSWORD
@@ -155,14 +120,12 @@ export const registeration = async (
         10
       );
 
-
     // -------------------------------
     // CREATE USER
     // -------------------------------
 
     const user =
       await User.create({
-
         name:
           trimmedName,
 
@@ -171,9 +134,7 @@ export const registeration = async (
 
         password:
           hashedPassword,
-
       });
-
 
     // -------------------------------
     // GENERATE TOKEN
@@ -184,7 +145,6 @@ export const registeration = async (
         user._id
       );
 
-
     // -------------------------------
     // SET COOKIE
     // -------------------------------
@@ -193,24 +153,20 @@ export const registeration = async (
       "token",
       token,
       {
-
         ...cookieOptions,
 
         maxAge:
           1000 *
           60 *
           60,
-
       }
     );
-
 
     // -------------------------------
     // RESPONSE
     // -------------------------------
 
     return res.status(201).json({
-
       success: true,
 
       message:
@@ -219,7 +175,6 @@ export const registeration = async (
       token,
 
       user: {
-
         _id:
           user._id,
 
@@ -228,36 +183,25 @@ export const registeration = async (
 
         email:
           user.email,
-
       },
-
     });
 
-  }
-
-  catch (
+  } catch (
     error
   ) {
-
     console.log(
       "Registration Error:",
       error
     );
 
-
     return res.status(500).json({
-
       success: false,
 
       message:
         "Internal Server Error",
-
     });
-
   }
-
 };
-
 
 // ======================================================
 // LOGIN
@@ -267,14 +211,11 @@ export const login = async (
   req,
   res
 ) => {
-
   try {
-
     const {
       email,
       password,
     } = req.body;
-
 
     // -------------------------------
     // VALIDATION
@@ -284,42 +225,31 @@ export const login = async (
       !email ||
       !password
     ) {
-
       return res.status(400).json({
-
         success: false,
 
         message:
           "Email and Password are required",
-
       });
-
     }
-
 
     const trimmedEmail =
       email
         .trim()
         .toLowerCase();
 
-
     if (
       !validator.isEmail(
         trimmedEmail
       )
     ) {
-
       return res.status(400).json({
-
         success: false,
 
         message:
           "Invalid Email",
-
       });
-
     }
-
 
     // -------------------------------
     // FIND USER
@@ -327,28 +257,20 @@ export const login = async (
 
     const user =
       await User.findOne({
-
         email:
           trimmedEmail,
-
       });
-
 
     if (
       !user
     ) {
-
       return res.status(401).json({
-
         success: false,
 
         message:
           "Invalid Credentials",
-
       });
-
     }
-
 
     // -------------------------------
     // CHECK PASSWORD
@@ -360,22 +282,16 @@ export const login = async (
         user.password
       );
 
-
     if (
       !isMatch
     ) {
-
       return res.status(401).json({
-
         success: false,
 
         message:
           "Invalid Credentials",
-
       });
-
     }
-
 
     // -------------------------------
     // GENERATE TOKEN
@@ -386,7 +302,6 @@ export const login = async (
         user._id
       );
 
-
     // -------------------------------
     // SET COOKIE
     // -------------------------------
@@ -395,24 +310,20 @@ export const login = async (
       "token",
       token,
       {
-
         ...cookieOptions,
 
         maxAge:
           1000 *
           60 *
           60,
-
       }
     );
-
 
     // -------------------------------
     // RESPONSE
     // -------------------------------
 
     return res.status(200).json({
-
       success: true,
 
       message:
@@ -421,7 +332,6 @@ export const login = async (
       token,
 
       user: {
-
         _id:
           user._id,
 
@@ -430,36 +340,25 @@ export const login = async (
 
         email:
           user.email,
-
       },
-
     });
 
-  }
-
-  catch (
+  } catch (
     error
   ) {
-
     console.log(
       "Login Error:",
       error
     );
 
-
     return res.status(500).json({
-
       success: false,
 
       message:
         "Internal Server Error",
-
     });
-
   }
-
 };
-
 
 // ======================================================
 // LOGOUT
@@ -469,9 +368,7 @@ export const logout = (
   req,
   res
 ) => {
-
   try {
-
     // -------------------------------
     // CLEAR USER COOKIE
     // -------------------------------
@@ -480,7 +377,6 @@ export const logout = (
       "token",
       cookieOptions
     );
-
 
     // -------------------------------
     // CLEAR ADMIN COOKIE
@@ -491,45 +387,33 @@ export const logout = (
       cookieOptions
     );
 
-
     // -------------------------------
     // RESPONSE
     // -------------------------------
 
     return res.status(200).json({
-
       success: true,
 
       message:
         "Logout Successful",
-
     });
 
-  }
-
-  catch (
+  } catch (
     error
   ) {
-
     console.log(
       "Logout Error:",
       error
     );
 
-
     return res.status(500).json({
-
       success: false,
 
       message:
         "Internal Server Error",
-
     });
-
   }
-
 };
-
 
 // ======================================================
 // GOOGLE LOGIN
@@ -539,19 +423,15 @@ export const googleLogin = async (
   req,
   res
 ) => {
-
   console.log(
     req.body
   );
 
-
   try {
-
     const {
       name,
       email,
     } = req.body;
-
 
     // -------------------------------
     // VALIDATION
@@ -561,46 +441,34 @@ export const googleLogin = async (
       !name ||
       !email
     ) {
-
       return res.status(400).json({
-
         success: false,
 
         message:
           "Name and Email are required",
-
       });
-
     }
-
 
     const trimmedName =
       name.trim();
-
 
     const trimmedEmail =
       email
         .trim()
         .toLowerCase();
 
-
     if (
       !validator.isEmail(
         trimmedEmail
       )
     ) {
-
       return res.status(400).json({
-
         success: false,
 
         message:
           "Invalid Email",
-
       });
-
     }
-
 
     // -------------------------------
     // FIND EXISTING USER
@@ -608,12 +476,9 @@ export const googleLogin = async (
 
     let user =
       await User.findOne({
-
         email:
           trimmedEmail,
-
       });
-
 
     // -------------------------------
     // CREATE USER IF NOT EXISTS
@@ -622,12 +487,10 @@ export const googleLogin = async (
     if (
       !user
     ) {
-
       const randomPassword =
         crypto
           .randomBytes(32)
           .toString("hex");
-
 
       const hashedPassword =
         await bcrypt.hash(
@@ -635,10 +498,8 @@ export const googleLogin = async (
           10
         );
 
-
       user =
         await User.create({
-
           name:
             trimmedName,
 
@@ -647,11 +508,8 @@ export const googleLogin = async (
 
           password:
             hashedPassword,
-
         });
-
     }
-
 
     // -------------------------------
     // GENERATE TOKEN
@@ -662,18 +520,15 @@ export const googleLogin = async (
         user._id
       );
 
-
     console.log(
       "Google User ID:",
       user._id
     );
 
-
     console.log(
       "Generated Token:",
       token
     );
-
 
     // -------------------------------
     // SET COOKIE
@@ -683,24 +538,20 @@ export const googleLogin = async (
       "token",
       token,
       {
-
         ...cookieOptions,
 
         maxAge:
           1000 *
           60 *
           60,
-
       }
     );
-
 
     // -------------------------------
     // RESPONSE
     // -------------------------------
 
     return res.status(200).json({
-
       success: true,
 
       message:
@@ -709,7 +560,6 @@ export const googleLogin = async (
       token,
 
       user: {
-
         _id:
           user._id,
 
@@ -718,36 +568,25 @@ export const googleLogin = async (
 
         email:
           user.email,
-
       },
-
     });
 
-  }
-
-  catch (
+  } catch (
     error
   ) {
-
     console.log(
       "Google Login Error:",
       error
     );
 
-
     return res.status(500).json({
-
       success: false,
 
       message:
         "Internal Server Error",
-
     });
-
   }
-
 };
-
 
 // ======================================================
 // ADMIN LOGIN
@@ -757,14 +596,11 @@ export const adminLogin = async (
   req,
   res
 ) => {
-
   try {
-
     const {
       email,
       password,
     } = req.body;
-
 
     // -------------------------------
     // VALIDATION
@@ -774,44 +610,31 @@ export const adminLogin = async (
       !email ||
       !password
     ) {
-
       return res.status(400).json({
-
         success: false,
 
         message:
           "Email and Password are required",
-
       });
-
     }
-
 
     // -------------------------------
     // CHECK ADMIN CREDENTIALS
     // -------------------------------
 
     if (
-
       email !==
         process.env.ADMIN_EMAIL ||
-
       password !==
         process.env.ADMIN_PASSWORD
-
     ) {
-
       return res.status(401).json({
-
         success: false,
 
         message:
           "Invalid Admin Credentials",
-
       });
-
     }
-
 
     // -------------------------------
     // GENERATE ADMIN TOKEN
@@ -819,7 +642,6 @@ export const adminLogin = async (
 
     const token =
       generateAdminToken();
-
 
     // -------------------------------
     // SET ADMIN COOKIE
@@ -829,7 +651,6 @@ export const adminLogin = async (
       "adminToken",
       token,
       {
-
         ...cookieOptions,
 
         maxAge:
@@ -838,47 +659,35 @@ export const adminLogin = async (
           60 *
           60 *
           1000,
-
       }
     );
-
 
     // -------------------------------
     // RESPONSE
     // -------------------------------
 
     return res.status(200).json({
-
       success: true,
 
       message:
         "Admin Login Successful",
 
       token,
-
     });
 
-  }
-
-  catch (
+  } catch (
     error
   ) {
-
     console.error(
       "Admin Login Error:",
       error
     );
 
-
     return res.status(500).json({
-
       success: false,
 
       message:
         "Internal Server Error",
-
     });
-
   }
-
 };
