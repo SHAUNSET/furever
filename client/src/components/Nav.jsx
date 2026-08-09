@@ -10,6 +10,8 @@ import {
   useNavigate,
 } from "react-router-dom";
 
+import paws from "../assets/paws.png";
+
 import {
   AnimatePresence,
   motion,
@@ -884,10 +886,8 @@ export default function Nav() {
           >
 
             <img
-
-              src="/paws.png"
-
-              alt="FurEver"
+  src={paws}
+  alt="FurEver"
 
               className="
               h-8
