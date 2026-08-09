@@ -79,16 +79,25 @@ export default function AdminLogin() {
         }
       );
 
-      console.log("Admin Token:", res.data.token);
+      console.log("Admin Login Response:", res.data);
 
-      await getAdmin();
+      // Verify that the authentication cookie
+      // is actually working by fetching admin data.
+      const success = await getAdmin();
+
+      if (!success) {
+        setStatus("idle");
+        setServerError(
+          "Login succeeded, but admin authentication could not be verified."
+        );
+        return;
+      }
 
       setStatus("success");
 
       navigate("/", { replace: true });
-
     } catch (error) {
-      console.error(error);
+      console.error("Admin Login Error:", error);
 
       setStatus("idle");
 
@@ -97,8 +106,6 @@ export default function AdminLogin() {
       );
     }
   };
-
-
 
   return (
     <div
@@ -112,7 +119,6 @@ export default function AdminLogin() {
         className="w-full max-w-lg"
       >
         <div className="text-center mb-8">
-
           <div className="w-20 h-20 rounded-full bg-[#3B4CE0] flex items-center justify-center mx-auto mb-5">
             <ShieldCheck
               size={38}
@@ -133,14 +139,11 @@ export default function AdminLogin() {
           <p className="text-[#8A8FB0] text-lg">
             Welcome to the FurEver Admin Portal.
           </p>
-
         </div>
 
         <div className="bg-white rounded-3xl border border-[#EFEFF6] shadow-[0_10px_40px_-12px_rgba(20,23,46,0.12)] p-10">
-
           {status === "success" ? (
             <div className="text-center py-8">
-
               <div className="w-20 h-20 rounded-full bg-[#3B4CE0] flex items-center justify-center mx-auto mb-6">
                 <ShieldCheck
                   size={36}
@@ -159,21 +162,17 @@ export default function AdminLogin() {
               </h2>
 
               <p className="text-[#8A8FB0]">
-                Token printed in browser console.
+                Admin authentication verified successfully.
               </p>
-
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
-
               <div className="mb-6">
-
                 <label className="block text-lg font-medium mb-2">
                   Email
                 </label>
 
                 <div className="relative">
-
                   <Mail
                     className="absolute left-5 top-1/2 -translate-y-1/2 text-[#9DA1C4]"
                     size={22}
@@ -187,7 +186,6 @@ export default function AdminLogin() {
                     onBlur={handleBlur("email")}
                     className="w-full pl-14 pr-5 py-4 rounded-xl border border-[#E7E7F3] outline-none focus:border-[#3B4CE0]"
                   />
-
                 </div>
 
                 {touched.email && !valid.email && (
@@ -195,17 +193,14 @@ export default function AdminLogin() {
                     Enter a valid email.
                   </p>
                 )}
-
               </div>
 
               <div className="mb-6">
-
                 <label className="block text-lg font-medium mb-2">
                   Password
                 </label>
 
                 <div className="relative">
-
                   <Lock
                     className="absolute left-5 top-1/2 -translate-y-1/2 text-[#9DA1C4]"
                     size={22}
@@ -231,9 +226,7 @@ export default function AdminLogin() {
                       <Eye size={22} />
                     )}
                   </button>
-
                 </div>
-
               </div>
 
               {serverError && (
@@ -247,7 +240,9 @@ export default function AdminLogin() {
                 disabled={!allValid || status === "loading"}
                 className="w-full py-4 rounded-xl text-white text-lg font-semibold flex items-center justify-center gap-2 transition-all"
                 style={{
-                  backgroundColor: allValid ? "#3B4CE0" : "#C7CAEB",
+                  backgroundColor: allValid
+                    ? "#3B4CE0"
+                    : "#C7CAEB",
                 }}
               >
                 {status === "loading" ? (
@@ -259,10 +254,8 @@ export default function AdminLogin() {
                   </>
                 )}
               </button>
-
             </form>
           )}
-
         </div>
       </motion.div>
     </div>

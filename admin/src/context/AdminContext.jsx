@@ -1,5 +1,12 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+
 import axios from "axios";
+
 import { authDataContext } from "./AuthContext";
 
 export const adminDataContext = createContext();
@@ -10,7 +17,10 @@ function AdminContext({ children }) {
 
   const { serverUrl } = useContext(authDataContext);
 
-  // Get Current Admin
+  // ==========================================
+  // GET CURRENT ADMIN
+  // ==========================================
+
   const getAdmin = async () => {
     try {
       const result = await axios.get(
@@ -20,19 +30,50 @@ function AdminContext({ children }) {
         }
       );
 
-      setAdminData(result.data.admin);
+      console.log(
+        "GET ADMIN SUCCESS:",
+        result.data
+      );
+
+      setAdminData(
+        result.data.admin
+      );
+
+      // Authentication verified successfully
+      return true;
+
     } catch (error) {
-      console.log("Get Admin Error:", error);
+
+      console.log(
+        "GET ADMIN FAILED:",
+        error.response?.status,
+        error.response?.data ||
+          error.message
+      );
+
       setAdminData(null);
+
+      // Authentication failed
+      return false;
+
     } finally {
+
       setAdminLoading(false);
+
     }
   };
 
-  // Run when AdminContext loads
+  // ==========================================
+  // RUN WHEN ADMIN CONTEXT LOADS
+  // ==========================================
+
   useEffect(() => {
     getAdmin();
   }, []);
+
+  // ==========================================
+  // CONTEXT VALUE
+  // ==========================================
 
   const value = {
     adminData,
@@ -43,7 +84,9 @@ function AdminContext({ children }) {
   };
 
   return (
-    <adminDataContext.Provider value={value}>
+    <adminDataContext.Provider
+      value={value}
+    >
       {children}
     </adminDataContext.Provider>
   );
